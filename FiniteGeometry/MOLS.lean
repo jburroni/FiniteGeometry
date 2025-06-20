@@ -97,6 +97,7 @@ def L_square {m : K} (h : 0 ≠ m): LatinSquare (Fintype.card K) where
 lemma L_square_orth {m₁ m₂ : K} (h₀₁ : 0 ≠ m₁) (h₀₂ : 0 ≠ m₂) (h : m₁ ≠ m₂) :
     LatinSquare.orthogonal (L_square h₀₁) (L_square h₀₂) := by
   intro i j k l h₁ h₂
+  show i = k ∧ j = l
   have h₁' : fromFin i + m₁ * fromFin j = fromFin k + m₁ * fromFin l := by
     change toFin _ = toFin _ at h₁
     simpa using h₁
@@ -113,6 +114,7 @@ lemma L_square_orth {m₁ m₂ : K} (h₀₁ : 0 ≠ m₁) (h₀₂ : 0 ≠ m₂
     · contradiction
     · simpa [sub_eq_zero] using h_sub
   simp [h_coords] at *
+  show i = k
   exact h₁'
 
 
