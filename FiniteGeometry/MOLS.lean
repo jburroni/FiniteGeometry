@@ -61,7 +61,7 @@ end LatinSquare
 -- Fintype.equivOfCardEq requires noncomputable instances
 noncomputable section MOLS
 
-variable {K : Type*} [Field K] [Fintype K] --[DecidableEq K]
+variable {K : Type*} [Field K] [Fintype K]
 
 def toFin : K ≃ Fin (Fintype.card K) :=
   (Fintype.equivOfCardEq (by simp)).symm
