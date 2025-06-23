@@ -67,22 +67,22 @@ def toFin : K ≃ Fin (Fintype.card K) :=
   (Fintype.equivOfCardEq (by simp)).symm
 
 
-def fromFin : Fin (Fintype.card K) ≃ K :=
+def ζ : Fin (Fintype.card K) ≃ K :=
   (toFin : K ≃ _).symm
 
 omit [Field K] in
 @[simp]
-lemma fromFin_toFin (x : K) : fromFin (toFin x) = x := by
-  simp [fromFin, toFin]
+lemma fromFin_toFin (x : K) : ζ (toFin x) = x := by
+  simp [ζ, toFin]
 
 omit [Field K] in
 @[simp]
-lemma toFin_fromFin (i : Fin (Fintype.card K)) : toFin (fromFin i) = i := by
-  simp [fromFin, toFin]
+lemma toFin_fromFin (i : Fin (Fintype.card K)) : toFin (ζ i) = i := by
+  simp [ζ, toFin]
 
 
 def L_square {m : K} (h : 0 ≠ m): LatinSquare (Fintype.card K) where
-  L i j := toFin (fromFin i + m * fromFin j)
+  L i j := toFin (ζ i + m * ζ j)
   row_latin {j k} := by
     intro i hneq hk
     simp at hk
@@ -98,24 +98,22 @@ lemma L_square_orth {m₁ m₂ : K} (h₀₁ : 0 ≠ m₁) (h₀₂ : 0 ≠ m₂
     LatinSquare.orthogonal (L_square h₀₁) (L_square h₀₂) := by
   intro i j k l h₁ h₂
   show i = k ∧ j = l
-  have h₁' : fromFin i + m₁ * fromFin j = fromFin k + m₁ * fromFin l := by
+  have h₁' : ζ i + m₁ * ζ j = ζ k + m₁ * ζ l := by
     change toFin _ = toFin _ at h₁
     simpa using h₁
-  have h₂' : fromFin i + m₂ * fromFin j = fromFin k + m₂ * fromFin l := by
+  have h₂' : ζ i + m₂ * ζ j = ζ k + m₂ * ζ l := by
     change toFin _ = toFin _ at h₂
     simpa using h₂
-  have h_sub : (m₁ - m₂) * (fromFin j - fromFin l) = 0 := by
+  have h_sub : (m₁ - m₂) * (ζ j - ζ l) = 0 := by
     linear_combination h₁' - h₂'
 
   have : m₁ - m₂ ≠ 0 := by simpa [sub_ne_zero] using h
   have h_coords : j = l := by
-    have : m₁ - m₂ = 0 ∨ fromFin j - fromFin l = 0 := mul_eq_zero.mp h_sub
+    have : m₁ - m₂ = 0 ∨ ζ j - ζ l = 0 := mul_eq_zero.mp h_sub
     rcases this with h_sub | h_sub
     · contradiction
     · simpa [sub_eq_zero] using h_sub
-  simp [h_coords] at *
-  show i = k
-  exact h₁'
+  simpa [h_coords] using h₁'
 
 
 def complete_MOLS :
