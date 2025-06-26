@@ -44,9 +44,8 @@ lemma not_inj_of_no_zero {α : Type _} {n : ℕ} [NeZero n] {s : Finset α}
     (f : α → Fin n) (hs : s.card = n) (hf : ∀ x ∈ s, f x ≠ 0) : ¬Set.InjOn f s := by
   have img_subset : s.image f ⊆ univ \ {0} := by
     intros y hy
-    rw [mem_image] at hy
-    obtain ⟨x, hx, rfl⟩ := hy
-    simp [mem_sdiff, mem_singleton, mem_univ, hf x hx]
+    obtain ⟨x, hx, rfl⟩ := mem_image.mp hy
+    simp [hf x hx]
   have h₀ : {0} ⊆ (univ : Finset (Fin n)) := subset_univ {0}
   intro h
   have :=
