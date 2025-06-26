@@ -16,15 +16,13 @@ namespace LatinSquare
 instance : GetElem (LatinSquare n) (Fin n × Fin n) (Fin n) (fun _ _ => True) where
   getElem L ij _ := L.L ij.1 ij.2
 
+@[simp]
 def pairMap {n : ℕ} (A B : LatinSquare n) : (Fin n × Fin n) → (Fin n × Fin n)
 | ⟨i, j⟩ => (A[(i,j)], B[(i,j)])
 
 @[simp]
 def orthogonal {n : ℕ} (A B : LatinSquare n) : Prop :=
-  ∀ {i j k l : Fin n},
-    A[(i, j)] = A[(k,l)] →
-    B[(i, j)] = B[(k, l)] →
-    i = k ∧ j = l
+  Function.Injective (pairMap A B)
 
 infix:50 " ⊥ " => orthogonal
 
@@ -32,29 +30,7 @@ infix:50 " ⊥ " => orthogonal
   Function.Bijective (pairMap A B)
 
 lemma orthogonal_iff_bijective {n : ℕ} (A B : LatinSquare n) :
-    orthogonal A B ↔ orthogonal_bijective A B := by
-  have card_eq : Fintype.card (Fin n × Fin n) = Fintype.card (Fin n × Fin n) := rfl
-  refine ⟨?inj_to_bij, ?bij_to_inj⟩
-  · intro h_inj
-    have h_injective : Function.Injective (pairMap A B) := by
-      intro p q h_eq
-      rcases p with ⟨i,j⟩
-      rcases q with ⟨k,l⟩
-      simp [pairMap] at h_eq
-      rcases h_eq with ⟨h₁, h₂⟩
-      rcases h_inj h₁ h₂ with ⟨rfl, rfl⟩
-      rfl
-    -- An injective map between finite sets of the same cardinality is
-    -- automatically bijective.
-    have h_surj : Function.Surjective (pairMap A B) := Finite.injective_iff_surjective.1 h_injective
-    exact ⟨h_injective, h_surj⟩
-  · intro h_bij
-    intro i j k l h₁ h₂
-    have h_eq : (pairMap A B) (i, j) = (pairMap A B) (k, l) := by
-      simpa [Prod.ext_iff] using And.intro h₁ h₂
-    have h_coords : (i, j) = (k, l) := h_bij.injective h_eq
-    show i = k ∧ j = l
-    simpa using h_coords
+    orthogonal A B ↔ orthogonal_bijective A B := Finite.injective_iff_bijective
 
 end LatinSquare
 
@@ -96,8 +72,9 @@ def L_square {m : K} (h : 0 ≠ m): LatinSquare (Fintype.card K) where
 
 lemma L_square_orth {m₁ m₂ : K} (h₀₁ : 0 ≠ m₁) (h₀₂ : 0 ≠ m₂) (h : m₁ ≠ m₂) :
     LatinSquare.orthogonal (L_square h₀₁) (L_square h₀₂) := by
-  intro i j k l h₁ h₂
-  show i = k ∧ j = l
+  intro ⟨i, j⟩ ⟨k, l⟩ h₁
+  simp at h₁
+  rcases h₁ with ⟨h₁, h₂⟩
   have h₁' : ζ i + m₁ * ζ j = ζ k + m₁ * ζ l := by
     change toFin _ = toFin _ at h₁
     simpa using h₁
