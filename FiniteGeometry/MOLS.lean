@@ -48,14 +48,14 @@ lemma not_inj_of_no_zero {α : Type _} {n : ℕ} [NeZero n] {s : Finset α}
     simp [hf x hx]
   have h₀ : {0} ⊆ (univ : Finset (Fin n)) := subset_univ {0}
   intro h
-  have :=
-    calc n = #s           := hs.symm
-      _ = #(image f s)    := (Finset.card_image_of_injOn h).symm
-      _ ≤ #(univ \ {0})   := Finset.card_le_card img_subset
-      _ = #(univ) - #{0}  := Finset.card_sdiff h₀
-      _ = n - 1           := by rw [Finset.card_singleton, Finset.card_fin n]
-      _ < n               := Nat.sub_one_lt_of_lt NeZero.one_le
-  linarith
+  show False
+  apply lt_irrefl n
+  calc n = #s           := hs.symm
+    _ = #(image f s)    := (Finset.card_image_of_injOn h).symm
+    _ ≤ #(univ \ {0})   := Finset.card_le_card img_subset
+    _ = #(univ) - #{0}  := Finset.card_sdiff h₀
+    _ = n - 1           := by rw [Finset.card_singleton, Finset.card_fin n]
+    _ < n               := Nat.sub_one_lt_of_lt NeZero.one_le
 
 
 lemma card_MOLS_le (n : ℕ) (S : Finset (LatinSquare n)) (hS : pairwise_orthogonal S) :
