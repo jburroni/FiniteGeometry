@@ -34,8 +34,48 @@ lemma orthogonal_iff_bijective {n : ℕ} (A B : LatinSquare n) :
 
 end LatinSquare
 
+section MOLS
+
+
+def pairwise_orthogonal {n : ℕ} (_S : Finset (LatinSquare n)) : Prop :=
+  Pairwise (fun A B ↦ (A : LatinSquare n) ⊥ (B: LatinSquare n))
+
+lemma not_inj_of_no_zero {α : Type _} {n : ℕ} [NeZero n] {s : Finset α}
+    (f : α → Fin n) (hs : s.card = n) (hf : ∀ x ∈ s, f x ≠ 0) : ¬Set.InjOn f s := by
+  have img_subset : s.image f ⊆ univ \ {0} := by
+    intros y hy
+    rw [mem_image] at hy
+    obtain ⟨x, hx, rfl⟩ := hy
+    simp [mem_sdiff, mem_singleton, mem_univ, hf x hx]
+  have card_bound := Finset.card_le_card img_subset
+  have h_univ_card : #(univ : Finset (Fin n)) = n := Finset.card_fin n
+  rw [Finset.card_sdiff, Finset.card_singleton, h_univ_card] at card_bound
+  have : n ≥ 1 := NeZero.one_le
+  have :=
+    calc #(image f s) ≤ n - 1 := card_bound
+      _ < n := Nat.sub_one_lt_of_lt this
+  intro h
+  have h_card_eq : #(image f s) = #s := Finset.card_image_of_injOn h
+  rw [hs] at h_card_eq
+  linarith
+  · exact subset_univ {0}
+
+
+lemma card_MOLS_le (n : ℕ) (S : Finset (LatinSquare n)) (hS : pairwise_orthogonal S) :
+    S.card ≤ n - 1 := by
+  have h : S.card ≤ Fintype.card (Fin n) := by
+    apply Finite.card_le_of_injective
+    intro A B hAB
+    simp at hAB
+    exact hAB.orthogonal_iff_bijective.mp hAB
+  rw [Fintype.card_fin] at h
+  exact h
+
+
+end MOLS
+
 -- Fintype.equivOfCardEq requires noncomputable instances
-noncomputable section MOLS
+noncomputable section KMOLS
 
 variable {K : Type*} [Field K] [Fintype K]
 
@@ -103,4 +143,4 @@ lemma complete_MOLS_pairwise :
   apply L_square_orth
   exact fun h' => hneq (Subtype.ext h')
 
-end MOLS
+end KMOLS
