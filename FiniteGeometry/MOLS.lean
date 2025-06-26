@@ -47,18 +47,19 @@ lemma not_inj_of_no_zero {α : Type _} {n : ℕ} [NeZero n] {s : Finset α}
     rw [mem_image] at hy
     obtain ⟨x, hx, rfl⟩ := hy
     simp [mem_sdiff, mem_singleton, mem_univ, hf x hx]
-  have card_bound := Finset.card_le_card img_subset
-  have h_univ_card : #(univ : Finset (Fin n)) = n := Finset.card_fin n
-  rw [Finset.card_sdiff, Finset.card_singleton, h_univ_card] at card_bound
-  have : n ≥ 1 := NeZero.one_le
-  have :=
-    calc #(image f s) ≤ n - 1 := card_bound
-      _ < n := Nat.sub_one_lt_of_lt this
+  have h₀ : {0} ⊆ (univ : Finset (Fin n)) := subset_univ {0}
+  have card_bound := by
+    calc --#(image f s)
+      _ ≤ _ := Finset.card_le_card img_subset
+      _ = #(univ) - #{0} := Finset.card_sdiff h₀
+      _ = n - 1 := by rw [Finset.card_singleton, Finset.card_fin n]
+      _ < n := Nat.sub_one_lt_of_lt NeZero.one_le
   intro h
-  have h_card_eq : #(image f s) = #s := Finset.card_image_of_injOn h
-  rw [hs] at h_card_eq
+  have :=
+    calc #(image f s)
+      _ = #s := Finset.card_image_of_injOn h
+      _ = n := hs
   linarith
-  · exact subset_univ {0}
 
 
 lemma card_MOLS_le (n : ℕ) (S : Finset (LatinSquare n)) (hS : pairwise_orthogonal S) :
