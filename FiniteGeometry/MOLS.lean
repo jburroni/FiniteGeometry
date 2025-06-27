@@ -70,7 +70,46 @@ lemma card_MOLS_le (n : ℕ) (h : n ≥ 2) (S : Finset (LatinSquare n))
     (hS : pairwise_orthogonal S) : S.card ≤ n - 1 := by
   set one : Fin n := ⟨1, h⟩
   set zero : Fin n := ⟨0, (by omega)⟩
+  let A : LatinSquare n := sorry
+  #check A.row_surjective one one
+  let k₀ := fun (A : LatinSquare n) ↦ A[(zero, zero)]
+
+  let row_inv := fun (A : LatinSquare n) => by
+    let k := k₀ A
+    have : ∃ a, A.L one a = k := A.row_surjective one k
+    rcases h: Fin.find (fun j => A.L one j = k) with - | j
+    · exfalso
+      simp [Fin.find_eq_none_iff] at h
+      cases' this with a ha
+      exact h a ha
+    · exact j
+  let row_inv := fun (A : LatinSquare n) i => by
+    let k := k₀ A
+    have j := Fin.find? (fun j => A.L one j = k)
+    have : ∃ a, A.L one a = k := A.row_surjective one k
+    have hj : j.isSome := by
+      change ∃ a, ((A.L one a = k) = true) at this
+      simp at this
+      exact this
+    match j with
+    | some j' =>
+    | Fin.succ i =>
+    have := @Fin.find n (fun j => A.L i j = k) _ (A.row_surjective i k)
+    let a := Fin.find this
+    have : A.L i a = k := Fin.find_spec this
+    obtain ⟨a, ha⟩ := this
+    exact Fin.find (A.row_surjective i (k₀ A))
+  let f := fun (A : LatinSquare n) =>  row_inv A one (A.L zero zero)
+  have hf : ∀ A ∈ S, f A ≠ zero := by
+    intro A hA
+    simp [f, row_inv, Fin.find_spec]
+    intro h_eq
+    have : zero ≠ one := by omega
+    have := A.row_latin zero this
+    simp [this] at h_eq
   let f' := fun (A : LatinSquare n) =>  Fin.find (fun j => A.L one j = A.L zero zero)
+  Fin.find (fun j => A.L i j = k)
+  have := Fin.find (fun j => A.L i j = k)
   have hf : ∀ A ∈ S, f' A ≠ zero := by
     intro A hA
     simp [f', Fin.find_spec]
