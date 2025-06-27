@@ -7,30 +7,38 @@ open Finset
 
 structure LatinSquare (n : ℕ) where
   L : Fin n → Fin n → Fin n
-  row_latin {j k} : ∀ i , j ≠ k → L i j ≠ L i k
-  col_latin {i k} : ∀ j, i ≠ k → L i j ≠ L k j
+  row_latin : ∀ i, Function.Injective fun j ↦ L i j
+  col_latin : ∀ j, Function.Injective fun i ↦ L i j
 
 namespace LatinSquare
+
+variable {n : ℕ}
 
 -- to support the A[(i, j)] notation
 instance : GetElem (LatinSquare n) (Fin n × Fin n) (Fin n) (fun _ _ => True) where
   getElem L ij _ := L.L ij.1 ij.2
 
 @[simp]
-def pairMap {n : ℕ} (A B : LatinSquare n) : (Fin n × Fin n) → (Fin n × Fin n)
+def pairMap (A B : LatinSquare n) : (Fin n × Fin n) → (Fin n × Fin n)
 | ⟨i, j⟩ => (A[(i,j)], B[(i,j)])
 
 @[simp]
-def orthogonal {n : ℕ} (A B : LatinSquare n) : Prop :=
+def orthogonal (A B : LatinSquare n) : Prop :=
   Function.Injective (pairMap A B)
 
 infix:50 " ⊥ " => orthogonal
 
-@[simp] def orthogonal_bijective {n : ℕ} (A B : LatinSquare n) : Prop :=
+@[simp] def orthogonal_bijective (A B : LatinSquare n) : Prop :=
   Function.Bijective (pairMap A B)
 
-lemma orthogonal_iff_bijective {n : ℕ} (A B : LatinSquare n) :
+lemma orthogonal_iff_bijective (A B : LatinSquare n) :
     orthogonal A B ↔ orthogonal_bijective A B := Finite.injective_iff_bijective
+
+lemma row_surjective (A : LatinSquare n) (i : Fin n) : Function.Surjective (fun j ↦ A.L i j) :=
+  Finite.surjective_of_injective (A.row_latin i)
+
+lemma col_surjective (A : LatinSquare n) (j : Fin n) : Function.Surjective (fun i ↦ A.L i j) :=
+  Finite.surjective_of_injective (A.col_latin j)
 
 end LatinSquare
 
@@ -40,8 +48,8 @@ section MOLS
 def pairwise_orthogonal {n : ℕ} (_S : Finset (LatinSquare n)) : Prop :=
   Pairwise (fun A B ↦ (A : LatinSquare n) ⊥ (B: LatinSquare n))
 
-lemma not_inj_of_no_zero {α : Type _} {n : ℕ} [NeZero n] {s : Finset α}
-    (f : α → Fin n) (hs : s.card = n) (hf : ∀ x ∈ s, f x ≠ 0) : ¬Set.InjOn f s := by
+lemma not_inj_of_no_zero {α : Type*} {n : ℕ} [NeZero n] {s : Finset α} (f : α → Fin n)
+    (hs : s.card = n) (hf : ∀ x ∈ s, f x ≠ 0) : ¬Set.InjOn f s := by
   have img_subset : s.image f ⊆ univ \ {0} := by
     intros y hy
     obtain ⟨x, hx, rfl⟩ := mem_image.mp hy
@@ -58,8 +66,18 @@ lemma not_inj_of_no_zero {α : Type _} {n : ℕ} [NeZero n] {s : Finset α}
     _ < n               := Nat.sub_one_lt_of_lt NeZero.one_le
 
 
-lemma card_MOLS_le (n : ℕ) (S : Finset (LatinSquare n)) (hS : pairwise_orthogonal S) :
-    S.card ≤ n - 1 := by
+lemma card_MOLS_le (n : ℕ) (h : n ≥ 2) (S : Finset (LatinSquare n))
+    (hS : pairwise_orthogonal S) : S.card ≤ n - 1 := by
+  set one : Fin n := ⟨1, h⟩
+  set zero : Fin n := ⟨0, (by omega)⟩
+  let f' := fun (A : LatinSquare n) =>  Fin.find (fun j => A.L one j = A.L zero zero)
+  have hf : ∀ A ∈ S, f' A ≠ zero := by
+    intro A hA
+    simp [f', Fin.find_spec]
+    intro h_eq
+    have : zero ≠ one := by sorry
+    have := A.col_latin zero this
+    simp [this] at h_eq
   have h : S.card ≤ Fintype.card (Fin n) := by
     apply Finite.card_le_of_injective
     intro A B hAB
@@ -96,16 +114,15 @@ lemma toFin_fromFin (i : Fin (Fintype.card K)) : toFin (ζ i) = i := by
 
 def L_square {m : K} (h : 0 ≠ m): LatinSquare (Fintype.card K) where
   L i j := toFin (ζ i + m * ζ j)
-  row_latin {j k} := by
-    intro i hneq hk
-    simp at hk
-    rcases hk with h₁| h₂
-    · exact hneq h₁
-    · exact h h₂.symm
-  col_latin {i k} := by
-    intro j hneq hk
-    simp at hk
-    exact hneq hk
+  row_latin := by
+    intro i j k heq
+    simp at heq
+    rcases heq with h₁| h₂
+    · exact h₁
+    · exfalso; exact h h₂.symm
+  col_latin := by
+    intro _ _ _ heq
+    simpa using heq
 
 lemma L_square_orth {m₁ m₂ : K} (h₀₁ : 0 ≠ m₁) (h₀₂ : 0 ≠ m₂) (h : m₁ ≠ m₂) :
     LatinSquare.orthogonal (L_square h₀₁) (L_square h₀₂) := by
