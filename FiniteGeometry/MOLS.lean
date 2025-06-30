@@ -65,17 +65,24 @@ lemma not_inj_of_not_zero {α : Type*} {n : ℕ} [NeZero n] {s : Finset α} (f :
     _ = n - 1           := by rw [Finset.card_singleton, Finset.card_fin n]
     _ < n               := Nat.sub_one_lt_of_lt NeZero.one_le
 
+namespace Finite
+open Function
+variable {α : Type*}
+variable [Finite α]
+theorem not_injective_iff_not_surjective {f : α → α} : ¬ Injective f ↔ ¬ Surjective f := by
+  constructor<;> intro h <;> intro h' <;> apply h <;> simpa [injective_iff_surjective] using h'
+
+end Finite
+
 lemma not_inj_of_not_zero' {n m : ℕ} [NeZero n]  (f : Fin m → Fin n)
     (hs : n ≤ m) (hf : ∀ x, f x ≠ 0) : ¬Function.Injective f := by
-  intro h_inj
+  intro h
   rcases Nat.eq_or_lt_of_le hs with rfl | h_lt
-  · have : ¬ Function.Surjective f := by
-      intro h_surj
-      obtain ⟨a, ha⟩ := h_surj (0 : Fin n)
-      exact hf a ha
-    exact this (Finite.injective_iff_surjective.mp h_inj)
+  · rw [Finite.injective_iff_surjective] at h
+    obtain ⟨a, ha⟩ : ∃ a, (f a = 0) := h (0 : Fin n)
+    exact hf a ha
   · apply lt_iff_not_ge.mp h_lt
-    have : Nat.card (Fin m) ≤ Nat.card (Fin n) := Finite.card_le_of_injective f h_inj
+    have : Nat.card (Fin m) ≤ Nat.card (Fin n) := Finite.card_le_of_injective f h
     simpa using this
 
 
