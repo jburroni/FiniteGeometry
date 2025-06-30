@@ -48,7 +48,7 @@ section MOLS
 def pairwise_orthogonal {n : ℕ} (_S : Finset (LatinSquare n)) : Prop :=
   Pairwise (fun A B ↦ (A : LatinSquare n) ⊥ (B: LatinSquare n))
 
-lemma not_inj_of_no_zero {α : Type*} {n : ℕ} [NeZero n] {s : Finset α} (f : α → Fin n)
+lemma not_inj_of_not_zero {α : Type*} {n : ℕ} [NeZero n] {s : Finset α} (f : α → Fin n)
     (hs : s.card = n) (hf : ∀ x ∈ s, f x ≠ 0) : ¬Set.InjOn f s := by
   have img_subset : s.image f ⊆ univ \ {0} := by
     intros y hy
@@ -65,24 +65,68 @@ lemma not_inj_of_no_zero {α : Type*} {n : ℕ} [NeZero n] {s : Finset α} (f : 
     _ = n - 1           := by rw [Finset.card_singleton, Finset.card_fin n]
     _ < n               := Nat.sub_one_lt_of_lt NeZero.one_le
 
+lemma not_inj_of_not_zero' {n m : ℕ} [NeZero n]  (f : Fin m → Fin n)
+    (hs : n ≤ m) (hf : ∀ x, f x ≠ 0) : ¬Function.Injective f := by
+  intro h_inj
+  rcases Nat.eq_or_lt_of_le hs with rfl | h_lt
+  · have : ¬ Function.Surjective f := by
+      intro h_surj
+      obtain ⟨a, ha⟩ := h_surj (0 : Fin n)
+      exact hf a ha
+    exact this (Finite.injective_iff_surjective.mp h_inj)
+  · apply lt_iff_not_ge.mp h_lt
+    have : Nat.card (Fin m) ≤ Nat.card (Fin n) := Finite.card_le_of_injective f h_inj
+    simpa using this
+
+
 
 lemma card_MOLS_le (n : ℕ) (h : n ≥ 2) (S : Finset (LatinSquare n))
     (hS : pairwise_orthogonal S) : S.card ≤ n - 1 := by
   set one : Fin n := ⟨1, h⟩
   set zero : Fin n := ⟨0, (by omega)⟩
-  let A : LatinSquare n := sorry
-  #check A.row_surjective one one
   let k₀ := fun (A : LatinSquare n) ↦ A[(zero, zero)]
+  have h_n₀ : ∀(A : LatinSquare n), A[(one, zero)] ≠ k₀ A := by
+    intro A
+    simp [k₀]
+    intro h_eq
+    have : one = zero := (A.col_latin zero) h_eq
+    have : zero ≠ one := not_eq_of_beq_eq_false rfl
+    exact this (by omega)
 
   let row_inv := fun (A : LatinSquare n) => by
-    let k := k₀ A
-    have : ∃ a, A.L one a = k := A.row_surjective one k
-    rcases h: Fin.find (fun j => A.L one j = k) with - | j
-    · exfalso
-      simp [Fin.find_eq_none_iff] at h
-      cases' this with a ha
-      exact h a ha
-    · exact j
+    set f := fun j ↦ A.L one j
+    have bij : Function.Bijective f :=
+      Finite.surjective_iff_bijective.mp (A.row_surjective one)
+    have := (Equiv.ofBijective _ bij).symm
+    exact this (k₀ A)
+  have h_n₀ : ∀ (A : LatinSquare n), row_inv A ≠ zero := by
+    intro A
+    intro h_eq
+    have := h_n₀ A
+    simp [row_inv] at h_eq
+    have : A.L one (row_inv A) = k₀ A := by
+      simp [row_inv]
+      let k := k₀ A
+      rcases Fin.find (fun j => A.L one j = k) with - |
+  have : ∀ A ∈ S, row_inv A ≠ zero := by
+    intro A hA
+    intro h
+    have : A.L one (row_inv A) = k₀ A := by
+      simp [row_inv]
+      let k := k₀ A
+      rcases Fin.find (fun j => A.L one j = k) with - | j
+      | none =>
+        exfalso
+        simp [Fin.find_eq_none_iff] at *
+        exact (A.row_surjective one k).elim
+      | some j => rfl
+    rw [h] at this  -- row_inv A = zero
+    exact h_n₀ A this
+    simp [row_inv, h_n₀, Fin.find_spec]
+    intro h_eq
+    have : zero ≠ one := by omega
+    have := A.row_latin one this
+    simp [this] at h_eq
   let row_inv := fun (A : LatinSquare n) i => by
     let k := k₀ A
     have j := Fin.find? (fun j => A.L one j = k)
