@@ -73,13 +73,39 @@ lemma not_inj_of_not_zero' {n m : ℕ} [NeZero n]  (f : Fin m → Fin n)
     simpa [Function.Surjective] using ⟨0, hf⟩
   · apply mt (Finite.card_le_of_injective f); simpa
 
+noncomputable def row_inv (h : n ≥ 2) (A : LatinSquare n) : Fin n → Fin n :=
+  let one := ⟨1, h⟩
+  let f := fun j => A.L one j
+  let bij := Finite.surjective_iff_bijective.mp (A.row_surjective one)
+  (Equiv.ofBijective f bij).symm
+
+lemma row_inv_spec (h : n ≥ 2) (A : LatinSquare n) (i : Fin n) :
+    A.L ⟨1, h⟩ (row_inv h A i) = i := by
+  set one : Fin n := ⟨1, h⟩
+  let f := fun j => A.L one j
+  have bij : Function.Bijective f :=
+    Finite.surjective_iff_bijective.mp (A.row_surjective one)
+  let e := Equiv.ofBijective f bij
+  have defn : row_inv h A = e.symm := rfl
+  rw [defn]
+  change e (e.symm i) = i
+  simp [Equiv.symm_apply_apply]
 
 
 lemma card_MOLS_le (n : ℕ) (h : n ≥ 2) (S : Finset (LatinSquare n))
     (hS : pairwise_orthogonal S) : S.card ≤ n - 1 := by
+  -- Suppose S.card ≥ n
+  -- Then, there are going to be two latin squares A and B in S such that
+  -- A[(zero, zero)] = A[(one, zero)]
+  -- and B[(zero, zero)] = B[(one, zero)]
+  -- That is, ¬ Function.Injective (pairMap A B)
+  by_contra h_card
+  push_neg at h_card
+  have : n ≤ S.card := by omega
   set one : Fin n := ⟨1, h⟩
   set zero : Fin n := ⟨0, (by omega)⟩
   let k₀ := fun (A : LatinSquare n) ↦ A[(zero, zero)]
+  let f := fun (A : LatinSquare n) ↦ (A[(one, zero)], k₀ A)
   have h_n₀ : ∀(A : LatinSquare n), A[(one, zero)] ≠ k₀ A := by
     intro A
     simp [k₀]
@@ -88,12 +114,29 @@ lemma card_MOLS_le (n : ℕ) (h : n ≥ 2) (S : Finset (LatinSquare n))
     have : zero ≠ one := not_eq_of_beq_eq_false rfl
     exact this (by omega)
 
-  let row_inv := fun (A : LatinSquare n) => by
+  set row_inv := fun (A : LatinSquare n) => by
     set f := fun j ↦ A.L one j
     have bij : Function.Bijective f :=
       Finite.surjective_iff_bijective.mp (A.row_surjective one)
     have := (Equiv.ofBijective _ bij).symm
     exact this (k₀ A)
+  have : ∀ (A: LatinSquare n), row_inv A = zero → A.L one zero = k₀ A := by
+    intro A h_eq
+    simp [row_inv] at h_eq
+    have : zero ≠ one := by omega
+    have := A.row_latin one this
+    simp [this] at h_eq
+  have h_row_inv : ∀ (A : LatinSquare n), row_inv A ≠ zero := by
+    intro A
+    intro h_eq
+    have : row_inv A = zero → A.L one zero = k₀ A := by
+      intro h_eq
+      simp [row_inv] at h_eq
+      have : zero ≠ one := by omega
+      have := A.row_latin one this
+      simp [this] at h_eq
+    have := h_n₀ A
+    simp [row_inv] at h_eq
   have h_n₀ : ∀ (A : LatinSquare n), row_inv A ≠ zero := by
     intro A
     intro h_eq
