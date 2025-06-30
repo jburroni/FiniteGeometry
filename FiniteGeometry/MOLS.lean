@@ -70,13 +70,8 @@ lemma not_inj_of_not_zero' {n m : ℕ} [NeZero n]  (f : Fin m → Fin n)
     (hs : n ≤ m) (hf : ∀ x, f x ≠ 0) : ¬Function.Injective f := by
   rcases Nat.eq_or_lt_of_le hs with rfl | h_lt
   · simp [Finite.injective_iff_surjective]
-    intro h_surj
-    obtain ⟨a, ha⟩ : ∃ a, (f a = 0) := h_surj (0 : Fin n)
-    exact hf a ha
-  · intro h_inj
-    apply lt_iff_not_ge.mp h_lt
-    show m ≤ n
-    simpa using (Finite.card_le_of_injective f h_inj)
+    unfold Function.Surjective; push_neg; exact ⟨0, hf⟩
+  · apply mt (Finite.card_le_of_injective f); simpa
 
 
 
