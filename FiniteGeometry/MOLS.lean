@@ -108,11 +108,6 @@ lemma row_inv_spec (A : LatinSquare n) (i : Fin n) (k : Fin n) :
 
 lemma card_MOLS_le (n : ℕ) (h : n ≥ 2) (S : Finset (LatinSquare n))
     (hS : pairwise_orthogonal S) : S.card ≤ n - 1 := by
-  -- Suppose S.card ≥ n
-  -- Then, there are going to be two latin squares A and B in S such that
-  -- A[(zero, zero)] = A[(one, zero)]
-  -- and B[(zero, zero)] = B[(one, zero)]
-  -- That is, ¬ Function.Injective (pairMap A B)
   by_contra h_card
   push_neg at h_card
   have h_card : n ≤ S.card := by omega
@@ -120,11 +115,10 @@ lemma card_MOLS_le (n : ℕ) (h : n ≥ 2) (S : Finset (LatinSquare n))
   set zero : Fin n := ⟨0, (by omega)⟩
   let k₀ := fun (A : LatinSquare n) ↦ A[(zero, zero)]
   have h_non_zero : ∀ (A : LatinSquare n), row_inv A one (k₀ A) ≠ zero := by
-    intro A h
-    simp [row_inv_spec' A one (k₀ A), k₀] at h
-    have : one = zero := (A.col_latin zero) h
-    have : zero ≠ one := not_eq_of_beq_eq_false rfl
-    exact this (by omega)
+    intro A
+    simp [row_inv_spec', k₀]
+    apply (A.col_latin zero).ne
+    exact not_eq_of_beq_eq_false rfl
   -- use the mapping between Fin m and S :  Finset (LatinSquare n)
   set m := S.card with s_card
   let index_to_latin (i : Fin m) : LatinSquare n := (Finset.equivFin S).symm i
@@ -139,114 +133,37 @@ lemma card_MOLS_le (n : ℕ) (h : n ≥ 2) (S : Finset (LatinSquare n))
   have := not_inj_of_not_zero' f h_card this
   unfold Function.Injective at this
   push_neg at this
-  rcases this with ⟨i, j, h_ij⟩
-  simp [f] at h_ij
-  set A := index_to_latin i
-  set B := index_to_latin j
+  rcases this with ⟨i, j, ⟨h_fij, ij_neq⟩⟩
+  simp [f] at h_fij
+  set A := index_to_latin i with hA
+  set B := index_to_latin j with hB
+  set A' := row_inv A one (k₀ A) with hA'
+  set B' := row_inv B one (k₀ B) with hB'
   have := row_inv_spec A one (k₀ A)
-  have := row_inv_spec B one (k₀ B)
-
-  let f := fun (A : LatinSquare n) ↦ (A[(one, zero)], k₀ A)
-  have h_n₀ : ∀(A : LatinSquare n), A[(one, zero)] ≠ k₀ A := by
-    intro A
+  have : A ≠ B := by
+    intro h_eq
+    apply ij_neq
+    apply S.equivFin.symm.injective
+    simp [hA, hB, index_to_latin] at h_eq
+    exact Subtype.ext h_eq
+  have orth : A ⊥ B := hS this
+  have pair_eq : (k₀ A, k₀ B) = A.pairMap B (one, A') := by
+    simp
+    constructor
+    · symm; exact row_inv_spec A one (k₀ A)
+    · symm; rw [h_fij]; exact row_inv_spec B one (k₀ B)
+  have pair_eq' : (k₀ A, k₀ B) = A.pairMap B (zero, zero) := by
     simp [k₀]
-    intro h_eq
-    have : one = zero := (A.col_latin zero) h_eq
-    have : zero ≠ one := not_eq_of_beq_eq_false rfl
-    exact this (by omega)
+  have : A.pairMap B (one, A') = A.pairMap B (zero, zero) := by
+    calc _
+      _ = (k₀ A, k₀ B) := pair_eq.symm
+      _ = A.pairMap B (zero, zero) := pair_eq'
+  have := orth.eq_iff.mp this
+  simp at this
+  have : zero = one := this.1.symm
+  have : zero ≠ one := not_eq_of_beq_eq_false rfl
+  contradiction
 
-  set row_inv := fun (A : LatinSquare n) => by
-    set f := fun j ↦ A.L one j
-    have bij : Function.Bijective f :=
-      Finite.surjective_iff_bijective.mp (A.row_surjective one)
-    have := (Equiv.ofBijective _ bij).symm
-    exact this (k₀ A)
-  have : ∀ (A: LatinSquare n), row_inv A = zero → A.L one zero = k₀ A := by
-    intro A h_eq
-    simp [row_inv] at h_eq
-    have : zero ≠ one := by omega
-    have := A.row_latin one this
-    simp [this] at h_eq
-  have h_row_inv : ∀ (A : LatinSquare n), row_inv A ≠ zero := by
-    intro A
-    intro h_eq
-    have : row_inv A = zero → A.L one zero = k₀ A := by
-      intro h_eq
-      simp [row_inv] at h_eq
-      have : zero ≠ one := by omega
-      have := A.row_latin one this
-      simp [this] at h_eq
-    have := h_n₀ A
-    simp [row_inv] at h_eq
-  have h_n₀ : ∀ (A : LatinSquare n), row_inv A ≠ zero := by
-    intro A
-    intro h_eq
-    have := h_n₀ A
-    simp [row_inv] at h_eq
-    have : A.L one (row_inv A) = k₀ A := by
-      simp [row_inv]
-      let k := k₀ A
-      rcases Fin.find (fun j => A.L one j = k) with - |
-  have : ∀ A ∈ S, row_inv A ≠ zero := by
-    intro A hA
-    intro h
-    have : A.L one (row_inv A) = k₀ A := by
-      simp [row_inv]
-      let k := k₀ A
-      rcases Fin.find (fun j => A.L one j = k) with - | j
-      | none =>
-        exfalso
-        simp [Fin.find_eq_none_iff] at *
-        exact (A.row_surjective one k).elim
-      | some j => rfl
-    rw [h] at this  -- row_inv A = zero
-    exact h_n₀ A this
-    simp [row_inv, h_n₀, Fin.find_spec]
-    intro h_eq
-    have : zero ≠ one := by omega
-    have := A.row_latin one this
-    simp [this] at h_eq
-  let row_inv := fun (A : LatinSquare n) i => by
-    let k := k₀ A
-    have j := Fin.find? (fun j => A.L one j = k)
-    have : ∃ a, A.L one a = k := A.row_surjective one k
-    have hj : j.isSome := by
-      change ∃ a, ((A.L one a = k) = true) at this
-      simp at this
-      exact this
-    match j with
-    | some j' =>
-    | Fin.succ i =>
-    have := @Fin.find n (fun j => A.L i j = k) _ (A.row_surjective i k)
-    let a := Fin.find this
-    have : A.L i a = k := Fin.find_spec this
-    obtain ⟨a, ha⟩ := this
-    exact Fin.find (A.row_surjective i (k₀ A))
-  let f := fun (A : LatinSquare n) =>  row_inv A one (A.L zero zero)
-  have hf : ∀ A ∈ S, f A ≠ zero := by
-    intro A hA
-    simp [f, row_inv, Fin.find_spec]
-    intro h_eq
-    have : zero ≠ one := by omega
-    have := A.row_latin zero this
-    simp [this] at h_eq
-  let f' := fun (A : LatinSquare n) =>  Fin.find (fun j => A.L one j = A.L zero zero)
-  Fin.find (fun j => A.L i j = k)
-  have := Fin.find (fun j => A.L i j = k)
-  have hf : ∀ A ∈ S, f' A ≠ zero := by
-    intro A hA
-    simp [f', Fin.find_spec]
-    intro h_eq
-    have : zero ≠ one := by sorry
-    have := A.col_latin zero this
-    simp [this] at h_eq
-  have h : S.card ≤ Fintype.card (Fin n) := by
-    apply Finite.card_le_of_injective
-    intro A B hAB
-    simp at hAB
-    exact hAB.orthogonal_iff_bijective.mp hAB
-  rw [Fintype.card_fin] at h
-  exact h
 
 
 end MOLS
