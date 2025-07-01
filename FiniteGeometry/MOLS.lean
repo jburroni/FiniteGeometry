@@ -14,6 +14,14 @@ namespace LatinSquare
 
 variable {n : ℕ}
 
+@[simp]
+def row (L : LatinSquare n) (i : Fin n) : Fin n → Fin n :=
+  fun j => L.L i j
+
+@[simp]
+def col (L : LatinSquare n) (j : Fin n) : Fin n → Fin n :=
+  fun i => L.L i j
+
 -- to support the A[(i, j)] notation
 instance : GetElem (LatinSquare n) (Fin n × Fin n) (Fin n) (fun _ _ => True) where
   getElem L ij _ := L.L ij.1 ij.2
@@ -34,10 +42,18 @@ infix:50 " ⊥ " => orthogonal
 lemma orthogonal_iff_bijective (A B : LatinSquare n) :
     orthogonal A B ↔ orthogonal_bijective A B := Finite.injective_iff_bijective
 
-lemma row_surjective (A : LatinSquare n) (i : Fin n) : Function.Surjective (fun j ↦ A.L i j) :=
+noncomputable def row_equiv (A : LatinSquare n) (i : Fin n) : Fin n ≃ Fin n :=
+  let bij := Finite.injective_iff_bijective.mp (A.row_latin i)
+  Equiv.ofBijective (A.row i) bij
+
+noncomputable def col_equiv (A : LatinSquare n) (j : Fin n) : Fin n ≃ Fin n :=
+  let bij := Finite.injective_iff_bijective.mp (A.col_latin j)
+  Equiv.ofBijective (A.col j) bij
+
+lemma row_surjective (A : LatinSquare n) (i : Fin n) : Function.Surjective (A.row i) :=
   Finite.surjective_of_injective (A.row_latin i)
 
-lemma col_surjective (A : LatinSquare n) (j : Fin n) : Function.Surjective (fun i ↦ A.L i j) :=
+lemma col_surjective (A : LatinSquare n) (j : Fin n) : Function.Surjective (A.col j) :=
   Finite.surjective_of_injective (A.col_latin j)
 
 end LatinSquare
@@ -73,23 +89,21 @@ lemma not_inj_of_not_zero' {n m : ℕ} [NeZero n]  (f : Fin m → Fin n)
     simpa [Function.Surjective] using ⟨0, hf⟩
   · apply mt (Finite.card_le_of_injective f); simpa
 
-noncomputable def row_inv (h : n ≥ 2) (A : LatinSquare n) : Fin n → Fin n :=
-  let one := ⟨1, h⟩
-  let f := fun j => A.L one j
-  let bij := Finite.surjective_iff_bijective.mp (A.row_surjective one)
-  (Equiv.ofBijective f bij).symm
+noncomputable def row_inv (A : LatinSquare n) (i : Fin n) : Fin n → Fin n :=
+  (A.row_equiv i).symm
 
-lemma row_inv_spec (h : n ≥ 2) (A : LatinSquare n) (i : Fin n) :
-    A.L ⟨1, h⟩ (row_inv h A i) = i := by
-  set one : Fin n := ⟨1, h⟩
-  let f := fun j => A.L one j
-  have bij : Function.Bijective f :=
-    Finite.surjective_iff_bijective.mp (A.row_surjective one)
-  let e := Equiv.ofBijective f bij
-  have defn : row_inv h A = e.symm := rfl
-  rw [defn]
-  change e (e.symm i) = i
-  simp [Equiv.symm_apply_apply]
+lemma row_inv_spec' (A : LatinSquare n) (i : Fin n) (k : Fin n) :
+    row_inv A i k = j ↔ A.L i j = k := by
+  simp [row_inv, Equiv.symm_apply_eq]
+  constructor
+  · intro h_eq; rw [h_eq]; rfl
+  · intro h_eq
+    simpa [Equiv.symm_apply_eq] using h_eq.symm
+
+lemma row_inv_spec (A : LatinSquare n) (i : Fin n) (k : Fin n) :
+    A.L i (row_inv A i k) = k := by
+  change A.row_equiv i (row_inv A i k) = k
+  simp [row_inv]
 
 
 lemma card_MOLS_le (n : ℕ) (h : n ≥ 2) (S : Finset (LatinSquare n))
@@ -101,10 +115,38 @@ lemma card_MOLS_le (n : ℕ) (h : n ≥ 2) (S : Finset (LatinSquare n))
   -- That is, ¬ Function.Injective (pairMap A B)
   by_contra h_card
   push_neg at h_card
-  have : n ≤ S.card := by omega
+  have h_card : n ≤ S.card := by omega
   set one : Fin n := ⟨1, h⟩
   set zero : Fin n := ⟨0, (by omega)⟩
   let k₀ := fun (A : LatinSquare n) ↦ A[(zero, zero)]
+  have h_non_zero : ∀ (A : LatinSquare n), row_inv A one (k₀ A) ≠ zero := by
+    intro A h
+    have := row_inv_spec A one (k₀ A)
+    simp [h, k₀] at this
+    have : one = zero := (A.col_latin zero) this
+    have : zero ≠ one := not_eq_of_beq_eq_false rfl
+    exact this (by omega)
+  -- use the mapping between Fin m and S :  Finset (LatinSquare n)
+  set m := S.card with s_card
+  let index_to_latin (i : Fin m) : LatinSquare n := (Finset.equivFin S).symm i
+  let f := fun (i : Fin m) ↦
+    row_inv (index_to_latin i) one (k₀ (index_to_latin i))
+  have : ∀ (i : Fin m), f i ≠ zero := by
+    intro i
+    simp [f]
+    set A := index_to_latin i
+    exact h_non_zero A
+  haveI nz_n: NeZero n := NeZero.of_gt h
+  have := not_inj_of_not_zero' f h_card this
+  unfold Function.Injective at this
+  push_neg at this
+  rcases this with ⟨i, j, h_ij⟩
+  simp [f] at h_ij
+  set A := index_to_latin i
+  set B := index_to_latin j
+  have := row_inv_spec A one (k₀ A)
+  have := row_inv_spec B one (k₀ B)
+
   let f := fun (A : LatinSquare n) ↦ (A[(one, zero)], k₀ A)
   have h_n₀ : ∀(A : LatinSquare n), A[(one, zero)] ≠ k₀ A := by
     intro A
