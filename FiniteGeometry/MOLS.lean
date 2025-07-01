@@ -59,11 +59,11 @@ def pairwise_orthogonal {n : ℕ} (_S : Finset (LatinSquare n)) : Prop :=
   Pairwise (fun A B ↦ (A : LatinSquare n) ⊥ (B: LatinSquare n))
 
 
-lemma not_inj_of_not_zero {n m : ℕ} [NeZero n]  (f : Fin m → Fin n)
-    (hs : n ≤ m) (hf : ∀ x, f x ≠ 0) : ¬Function.Injective f := by
+lemma not_inj_of_not_zero {n m : ℕ}  (f : Fin m → Fin n)
+    (hs : n ≤ m) (hf : ∃ y, ∀ x, f x ≠ y) : ¬Function.Injective f := by
   rcases Nat.eq_or_lt_of_le hs with rfl | h_lt
   · simp [Finite.injective_iff_surjective]
-    simpa [Function.Surjective] using ⟨0, hf⟩
+    simpa [Function.Surjective] using hf
   · apply mt (Finite.card_le_of_injective f); simpa
 
 lemma not_inj_of_not_zero' {n : ℕ} [NeZero n] (S : Finset (LatinSquare n)) (hS : n ≤ S.card)
@@ -72,7 +72,7 @@ lemma not_inj_of_not_zero' {n : ℕ} [NeZero n] (S : Finset (LatinSquare n)) (hS
   let g := f ∘ to_S
   have ⟨i, j, ⟨f_eq, ij_neq⟩⟩ : ∃ i j, g i = g j ∧ i ≠ j := by
     apply Function.not_injective_iff.mp
-    exact not_inj_of_not_zero g hS (fun i => hf _)
+    exact not_inj_of_not_zero g hS ⟨0, fun i => hf _⟩
 
   set A := to_S i; set B := to_S j
   have ⟨hA, hB⟩ : A ∈ S ∧ B ∈ S := by
