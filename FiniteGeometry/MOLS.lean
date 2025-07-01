@@ -64,25 +64,8 @@ section MOLS
 def pairwise_orthogonal {n : ℕ} (_S : Finset (LatinSquare n)) : Prop :=
   Pairwise (fun A B ↦ (A : LatinSquare n) ⊥ (B: LatinSquare n))
 
-lemma not_inj_of_not_zero {α : Type*} {n : ℕ} [NeZero n] {s : Finset α} (f : α → Fin n)
-    (hs : s.card = n) (hf : ∀ x ∈ s, f x ≠ 0) : ¬Set.InjOn f s := by
-  have img_subset : s.image f ⊆ univ \ {0} := by
-    intros y hy
-    obtain ⟨x, hx, rfl⟩ := mem_image.mp hy
-    simp [hf x hx]
-  have h₀ : {0} ⊆ (univ : Finset (Fin n)) := subset_univ {0}
-  intro h
-  show False
-  apply lt_irrefl n
-  calc n = #s           := hs.symm
-    _ = #(image f s)    := (Finset.card_image_of_injOn h).symm
-    _ ≤ #(univ \ {0})   := Finset.card_le_card img_subset
-    _ = #(univ) - #{0}  := Finset.card_sdiff h₀
-    _ = n - 1           := by rw [Finset.card_singleton, Finset.card_fin n]
-    _ < n               := Nat.sub_one_lt_of_lt NeZero.one_le
 
-
-lemma not_inj_of_not_zero' {n m : ℕ} [NeZero n]  (f : Fin m → Fin n)
+lemma not_inj_of_not_zero {n m : ℕ} [NeZero n]  (f : Fin m → Fin n)
     (hs : n ≤ m) (hf : ∀ x, f x ≠ 0) : ¬Function.Injective f := by
   rcases Nat.eq_or_lt_of_le hs with rfl | h_lt
   · simp [Finite.injective_iff_surjective]
@@ -119,13 +102,12 @@ lemma card_MOLS_le (n : ℕ) (h : n ≥ 2) (S : Finset (LatinSquare n))
     simp [row_inv_spec', k₀]
     apply (A.col_latin zero).ne
     exact not_eq_of_beq_eq_false rfl
-  -- use the mapping between Fin m and S :  Finset (LatinSquare n)
-  set m := S.card with s_card
+  set m := S.card
   let index_to_latin (i : Fin m) : LatinSquare n := (Finset.equivFin S).symm i
   let f := fun (i : Fin m) ↦
     row_inv (index_to_latin i) one (k₀ (index_to_latin i))
   haveI nz_n: NeZero n := NeZero.of_gt h
-  have := not_inj_of_not_zero' f h_card (fun i => h_non_zero _)
+  have := not_inj_of_not_zero f h_card (fun i => h_non_zero _)
   unfold Function.Injective at this
   push_neg at this
   rcases this with ⟨i, j, ⟨h_fij, ij_neq⟩⟩
@@ -134,7 +116,6 @@ lemma card_MOLS_le (n : ℕ) (h : n ≥ 2) (S : Finset (LatinSquare n))
   set B := index_to_latin j with hB
   set A' := row_inv A one (k₀ A) with hA'
   set B' := row_inv B one (k₀ B) with hB'
-  have := row_inv_spec A one (k₀ A)
   have : A ≠ B := by
     intro h_eq
     apply ij_neq
