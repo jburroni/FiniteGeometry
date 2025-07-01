@@ -121,9 +121,8 @@ lemma card_MOLS_le (n : ℕ) (h : n ≥ 2) (S : Finset (LatinSquare n))
   let k₀ := fun (A : LatinSquare n) ↦ A[(zero, zero)]
   have h_non_zero : ∀ (A : LatinSquare n), row_inv A one (k₀ A) ≠ zero := by
     intro A h
-    have := row_inv_spec A one (k₀ A)
-    simp [h, k₀] at this
-    have : one = zero := (A.col_latin zero) this
+    simp [row_inv_spec' A one (k₀ A), k₀] at h
+    have : one = zero := (A.col_latin zero) h
     have : zero ≠ one := not_eq_of_beq_eq_false rfl
     exact this (by omega)
   -- use the mapping between Fin m and S :  Finset (LatinSquare n)
