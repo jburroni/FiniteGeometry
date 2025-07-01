@@ -36,7 +36,7 @@ This project formalizes key concepts from finite geometry, specifically:
 
 ### Bounds
 
-- **Fisher's Inequality**: At most `n - 1` pairwise orthogonal Latin squares of order `n ≥ 2`
+- At most `n - 1` pairwise orthogonal Latin squares of order `n ≥ 2`
 - Constructive proof using counting arguments and the pigeonhole principle
 
 ## 🧮 Mathematical Background
