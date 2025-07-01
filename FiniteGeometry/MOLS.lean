@@ -50,12 +50,6 @@ noncomputable def col_equiv (A : LatinSquare n) (j : Fin n) : Fin n ≃ Fin n :=
   let bij := Finite.injective_iff_bijective.mp (A.col_latin j)
   Equiv.ofBijective (A.col j) bij
 
-lemma row_surjective (A : LatinSquare n) (i : Fin n) : Function.Surjective (A.row i) :=
-  Finite.surjective_of_injective (A.row_latin i)
-
-lemma col_surjective (A : LatinSquare n) (j : Fin n) : Function.Surjective (A.col j) :=
-  Finite.surjective_of_injective (A.col_latin j)
-
 end LatinSquare
 
 section MOLS
@@ -89,13 +83,6 @@ lemma not_inj_of_not_zero' {n : ℕ} [NeZero n] (S : Finset (LatinSquare n)) (hS
 noncomputable def row_inv (A : LatinSquare n) (i : Fin n) : Fin n → Fin n :=
   (A.row_equiv i).symm
 
-lemma row_inv_spec' (A : LatinSquare n) (i : Fin n) (k : Fin n) :
-    row_inv A i k = j ↔ A.L i j = k := by
-  simp [row_inv, Equiv.symm_apply_eq]
-  constructor
-  · intro h_eq; rw [h_eq]; rfl
-  · intro h_eq
-    simpa [Equiv.symm_apply_eq] using h_eq.symm
 
 lemma row_inv_spec (A : LatinSquare n) (i : Fin n) (k : Fin n) :
     A.L i (row_inv A i k) = k := by
@@ -112,14 +99,14 @@ lemma card_MOLS_le (n : ℕ) (h : n ≥ 2) (S : Finset (LatinSquare n))
   set zero : Fin n := ⟨0, (by omega)⟩
   let k₀ := fun (A : LatinSquare n) ↦ A[(zero, zero)]
   have h_non_zero : ∀ (A : LatinSquare n), row_inv A one (k₀ A) ≠ zero := by
-    intro A
-    simp [row_inv_spec', k₀]
-    apply (A.col_latin zero).ne
-    exact not_eq_of_beq_eq_false rfl
+    intro A h_eq
+    apply not_eq_of_beq_eq_false (a:= one) (b:=zero) rfl
+    show one = zero
+    have : A.L one zero = k₀ A := by rw [←h_eq, row_inv_spec]
+    exact (A.col_latin zero) this
   haveI nz_n: NeZero n := NeZero.of_gt h
   let f := fun (A : LatinSquare n) ↦ row_inv A one (k₀ A)
   obtain ⟨A, hA, B, hB, ab_neq, f_eq⟩ := not_inj_of_not_zero' S h_card f h_non_zero
-  have orth : A ⊥ B := hS ab_neq
   set A' := row_inv A one (k₀ A) with hA'
   set B' := row_inv B one (k₀ B) with hB'
   have pair_eq : (k₀ A, k₀ B) = A.pairMap B (one, A') := by
@@ -127,16 +114,14 @@ lemma card_MOLS_le (n : ℕ) (h : n ≥ 2) (S : Finset (LatinSquare n))
     simp ; conv => enter [2,2]; rw [this]
     constructor <;> symm <;> exact row_inv_spec _ one (k₀ _)
   have pair_eq' : (k₀ A, k₀ B) = A.pairMap B (zero, zero) := by simp [k₀]
-  have :=
-    calc A.pairMap B (one, A')
-      _ = (k₀ A, k₀ B)              := pair_eq.symm
-      _ = A.pairMap B (zero, zero)  := pair_eq'
-  have := orth.eq_iff.mp this
+  have orthogonal : A ⊥ B := hS ab_neq
+  have : (zero, zero) = (one, A') := by
+    apply orthogonal.eq_iff.mp
+    calc A.pairMap B (zero, zero)
+      _ = (k₀ A, k₀ B)              := pair_eq'
+      _ = A.pairMap B (one, A')     := pair_eq
   simp at this
-  have : zero = one := this.1.symm
-  exact (not_eq_of_beq_eq_false rfl) this
-
-
+  exact (not_eq_of_beq_eq_false rfl) this.1
 
 
 end MOLS
