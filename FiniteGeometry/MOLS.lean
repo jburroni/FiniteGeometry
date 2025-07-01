@@ -72,6 +72,20 @@ lemma not_inj_of_not_zero {n m : ℕ} [NeZero n]  (f : Fin m → Fin n)
     simpa [Function.Surjective] using ⟨0, hf⟩
   · apply mt (Finite.card_le_of_injective f); simpa
 
+lemma not_inj_of_not_zero' {n : ℕ} [NeZero n] (S : Finset (LatinSquare n)) (hS : n ≤ S.card)
+    (f: (LatinSquare n) → Fin n) (hf : ∀ A, f A ≠ 0) : ∃ A ∈ S, ∃ B ∈ S, A ≠ B ∧ f A = f B := by
+  let to_S i : LatinSquare n := (Finset.equivFin S).symm i
+  let g := f ∘ to_S
+  have ⟨i, j, ⟨f_eq, ij_neq⟩⟩ : ∃ i j, g i = g j ∧ i ≠ j := by
+    apply Function.not_injective_iff.mp
+    exact not_inj_of_not_zero g hS (fun i => hf _)
+
+  set A := to_S i; set B := to_S j
+  have ⟨hA, hB⟩ : A ∈ S ∧ B ∈ S := by
+    constructor <;> exact coe_mem (S.equivFin.symm _)
+  have ab_neq : A ≠ B := fun h_neq => (Subtype.ext h_neq) |> S.equivFin.symm.injective |> ij_neq
+  exact ⟨A, hA, B, hB, ab_neq, f_eq⟩
+
 noncomputable def row_inv (A : LatinSquare n) (i : Fin n) : Fin n → Fin n :=
   (A.row_equiv i).symm
 
@@ -102,29 +116,15 @@ lemma card_MOLS_le (n : ℕ) (h : n ≥ 2) (S : Finset (LatinSquare n))
     simp [row_inv_spec', k₀]
     apply (A.col_latin zero).ne
     exact not_eq_of_beq_eq_false rfl
-  set m := S.card
-  let index_to_latin (i : Fin m) : LatinSquare n := (Finset.equivFin S).symm i
-  let f := fun (i : Fin m) ↦
-    row_inv (index_to_latin i) one (k₀ (index_to_latin i))
   haveI nz_n: NeZero n := NeZero.of_gt h
-  have := not_inj_of_not_zero f h_card (fun i => h_non_zero _)
-  unfold Function.Injective at this
-  push_neg at this
-  rcases this with ⟨i, j, ⟨h_fij, ij_neq⟩⟩
-  simp [f] at h_fij
-  set A := index_to_latin i with hA
-  set B := index_to_latin j with hB
+  let f := fun (A : LatinSquare n) ↦ row_inv A one (k₀ A)
+  obtain ⟨A, hA, B, hB, ab_neq, f_eq⟩ := not_inj_of_not_zero' S h_card f h_non_zero
+  have orth : A ⊥ B := hS ab_neq
   set A' := row_inv A one (k₀ A) with hA'
   set B' := row_inv B one (k₀ B) with hB'
-  have : A ≠ B := by
-    intro h_eq
-    apply ij_neq
-    apply S.equivFin.symm.injective
-    simp [hA, hB, index_to_latin] at h_eq
-    exact Subtype.ext h_eq
-  have orth : A ⊥ B := hS this
   have pair_eq : (k₀ A, k₀ B) = A.pairMap B (one, A') := by
-    simp; conv => enter [2,2]; rw [h_fij]
+    have : A' = B' := f_eq
+    simp ; conv => enter [2,2]; rw [this]
     constructor <;> symm <;> exact row_inv_spec _ one (k₀ _)
   have pair_eq' : (k₀ A, k₀ B) = A.pairMap B (zero, zero) := by simp [k₀]
   have :=
@@ -135,6 +135,7 @@ lemma card_MOLS_le (n : ℕ) (h : n ≥ 2) (S : Finset (LatinSquare n))
   simp at this
   have : zero = one := this.1.symm
   exact (not_eq_of_beq_eq_false rfl) this
+
 
 
 
