@@ -96,7 +96,7 @@ lemma card_MOLS_le (n : ℕ) (h : n ≥ 2) (S : Finset (LatinSquare n))
   push_neg at h_card
   have h_card : n ≤ S.card := by omega
   set one : Fin n := ⟨1, h⟩
-  set zero : Fin n := ⟨0, (by omega)⟩
+  set zero : Fin n := ⟨0, (by linarith)⟩
   let k₀ := fun (A : LatinSquare n) ↦ A[(zero, zero)]
   have h_non_zero : ∀ (A : LatinSquare n), row_inv A one (k₀ A) ≠ zero := by
     intro A h_eq
