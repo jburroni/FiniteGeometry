@@ -124,13 +124,8 @@ lemma card_MOLS_le (n : ℕ) (h : n ≥ 2) (S : Finset (LatinSquare n))
   let index_to_latin (i : Fin m) : LatinSquare n := (Finset.equivFin S).symm i
   let f := fun (i : Fin m) ↦
     row_inv (index_to_latin i) one (k₀ (index_to_latin i))
-  have : ∀ (i : Fin m), f i ≠ zero := by
-    intro i
-    simp [f]
-    set A := index_to_latin i
-    exact h_non_zero A
   haveI nz_n: NeZero n := NeZero.of_gt h
-  have := not_inj_of_not_zero' f h_card this
+  have := not_inj_of_not_zero' f h_card (fun i => h_non_zero _)
   unfold Function.Injective at this
   push_neg at this
   rcases this with ⟨i, j, ⟨h_fij, ij_neq⟩⟩
@@ -148,21 +143,17 @@ lemma card_MOLS_le (n : ℕ) (h : n ≥ 2) (S : Finset (LatinSquare n))
     exact Subtype.ext h_eq
   have orth : A ⊥ B := hS this
   have pair_eq : (k₀ A, k₀ B) = A.pairMap B (one, A') := by
-    simp
-    constructor
-    · symm; exact row_inv_spec A one (k₀ A)
-    · symm; rw [h_fij]; exact row_inv_spec B one (k₀ B)
-  have pair_eq' : (k₀ A, k₀ B) = A.pairMap B (zero, zero) := by
-    simp [k₀]
-  have : A.pairMap B (one, A') = A.pairMap B (zero, zero) := by
-    calc _
-      _ = (k₀ A, k₀ B) := pair_eq.symm
-      _ = A.pairMap B (zero, zero) := pair_eq'
+    simp; conv => enter [2,2]; rw [h_fij]
+    constructor <;> symm <;> exact row_inv_spec _ one (k₀ _)
+  have pair_eq' : (k₀ A, k₀ B) = A.pairMap B (zero, zero) := by simp [k₀]
+  have :=
+    calc A.pairMap B (one, A')
+      _ = (k₀ A, k₀ B)              := pair_eq.symm
+      _ = A.pairMap B (zero, zero)  := pair_eq'
   have := orth.eq_iff.mp this
   simp at this
   have : zero = one := this.1.symm
-  have : zero ≠ one := not_eq_of_beq_eq_false rfl
-  contradiction
+  exact (not_eq_of_beq_eq_false rfl) this
 
 
 
