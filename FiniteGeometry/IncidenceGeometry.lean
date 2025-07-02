@@ -27,6 +27,14 @@ def trace (ℓ : G.Line) : Finset G.Point :=  Finset.univ.filter (fun p => G.inc
 @[simp]
 def pencil (p : G.Point) : Finset G.Line :=  Finset.univ.filter (fun ℓ => G.incidence p ℓ)
 
+@[simp]
+lemma trace_spec (ℓ : G.Line) (p : G.Point) :
+  p ∈ G.trace ℓ ↔ G.incidence p ℓ := by simp
+
+@[simp]
+lemma pencil_spec (p : G.Point) (ℓ : G.Line) :
+  ℓ ∈ G.pencil p ↔ G.incidence p ℓ := by simp
+
 section Category
 open CategoryTheory
 
@@ -76,15 +84,11 @@ def dual (G : IncidenceGeometry) : IncidenceGeometry where
 section Examples
 open Finset
 
-/-- Example: Steiner system S(3,3,5) with 5 points and all 3-element subsets as lines. -/
 def steinerS335 : IncidenceGeometry where
-  Point := Fin 5
   Line := { s : Finset (Fin 5) // #s = 3 }
   incidence := fun p b ↦ p ∈ b.val
 
-/-- Example: Affine plane AG(2,2) with 4 points and all 2-element subsets as lines. -/
 def affineAG22 : IncidenceGeometry where
-  Point := Fin 4
   Line := { s : Finset (Fin 4) // s.card = 2 }
   incidence := fun p b ↦ p ∈ b.val
 
@@ -123,6 +127,117 @@ lemma pair_unique_line {a b} (h : a ≠ b) :
         simp [h]
       simp [h_pair_card]
   rw [hx, ←h']
+
+lemma exists_unique_disjoint_line (p : affineAG22.Point) (b :affineAG22.Line) (h : p ∉ b.val) :
+    ∃! ℓ, ℓ ∈ pencil p  ∧ Disjoint (trace ℓ) (trace b) := by
+  -- idea:
+  -- b = {q₁, q₂} where q₁ ≠ q₂
+  -- there is q₃ such that Points = {p, q₁, q₂} insert q₃
+  -- take ℓ = {p, q₃}
+  -- then ℓ ∈ pencil p
+  -- Disjoint (trace ℓ) (trace b) holds because
+  -- trace ℓ = {p, q₃} and trace b = {q₁, q₂}
+
+
+  let candidates := pencil p
+  have hpencil : candidates = univ.filter (fun ℓ => p ∈ ℓ.val) := rfl
+  have hcard : candidates.card = 3 := by sorry
+    -- rw [pencil, filter_card_eq]
+    -- simp only [mem_univ, true_and, incidence]
+    -- rw [←erase_card_eq (mem_univ p), card_univ]
+    -- decide
+
+  have : ∃ ℓ₁ ℓ₂, candidates = {b, ℓ₁, ℓ₂} := by
+    have := card_eq_three.mp hcard
+    obtain ⟨q₁, q₂, hq, hb⟩ := this
+    have hq₁ : q₁ ≠ p := by
+      intro eq; subst eq; exact h (by rw [hb]; exact mem_insert_self _ _)
+    have hq₂ : q₂ ≠ p := by
+      intro eq; subst eq; exact h (by rw [hb]; exact mem_insert_of_mem _ (mem_singleton _))
+
+    let ℓ₁ := ⟨{p, q₁}, by simp [hq₁, card_insert_of_not_mem]⟩
+    let ℓ₂ := ⟨{p, q₂}, by simp [hq₂, card_insert_of_not_mem]⟩
+
+    have : candidates = {b, ℓ₁, ℓ₂} := by
+      ext ℓ
+      simp only [mem_filter, mem_insert, mem_singleton, mem_pencil, incidence, mem_univ, true_and]
+      constructor
+      · rintro ⟨hpℓ, hx⟩
+        -- show ℓ = b or ℓ₁ or ℓ₂
+        have := ℓ.property
+        obtain ⟨r, s, hrs, hℓ⟩ := card_eq_two.mp this
+        rw [hℓ] at hpℓ
+        cases eq_or_ne r p with hrp hrp
+        · subst hrp
+          cases eq_or_ne s q₁ with hsq₁ hsq₁
+          · left; apply Subtype.ext; rw [hℓ]; rw [insert_comm]
+          · right; left; apply Subtype.ext; rw [hℓ]; rw [insert_comm]
+        · subst s
+          cases eq_or_ne r q₁ with hsq₁ hsq₁
+          · left; apply Subtype.ext; rw [hℓ]
+          · right; right; apply Subtype.ext; rw [hℓ]
+      · intro h
+        rcases h with rfl | rfl | rfl <;> simp [hb]
+
+  let good := candidates.filter (fun ℓ => disjoint ℓ.val b.val)
+
+  -- have : good.card = 1 := by
+  --   have : (candidates.filter (fun ℓ => ¬disjoint ℓ.val b.val)).card = 2 := by
+  --     have := b.property
+  --     obtain ⟨q₁, q₂, hq, hb⟩ := Finset.card_eq_two.mp this
+  --     have hq₁ : q₁ ≠ p := by
+  --       intro eq; subst eq; exact h (by rw [hb]; exact mem_insert_self _ _)
+  --     have hq₂ : q₂ ≠ p := by
+  --       intro eq; subst eq; exact h (by rw [hb]; exact mem_insert_of_mem _ (mem_singleton _))
+
+  --     let ℓ₁ := ⟨{p, q₁}, by simp [hq₁, card_insert_of_not_mem]⟩
+  --     let ℓ₂ := ⟨{p, q₂}, by simp [hq₂, card_insert_of_not_mem]⟩
+
+  --     have : candidates.filter (fun ℓ => ¬disjoint ℓ.val b.val)
+  --             = {ℓ₁, ℓ₂} := by
+  --       ext ℓ
+  --       simp only [mem_filter, mem_insert, mem_singleton, mem_pencil, incidence, mem_univ, true_and]
+  --       constructor
+  --       · rintro ⟨hpℓ, ⟨x, hx₁, hx₂⟩⟩
+  --         -- show ℓ = ℓ₁ or ℓ₂
+  --         have := ℓ.property
+  --         obtain ⟨r, s, hrs, hℓ⟩ := card_eq_two.mp this
+  --         rw [hℓ] at hpℓ
+  --         cases eq_or_ne r p with hrp hrp
+  --         · subst hrp
+  --           cases eq_or_ne s q₁
+  --           · subst h
+  --             left; apply Subtype.ext; rw [hℓ]; rw [insert_comm]
+  --           · right; apply Subtype.ext; rw [hℓ]; rw [insert_comm]
+  --         · subst s
+  --           cases eq_or_ne r q₁
+  --           · left; apply Subtype.ext; rw [hℓ]
+  --           · right; apply Subtype.ext; rw [hℓ]
+  --       · intro h
+  --         rcases h with rfl | rfl
+  --         · use p
+  --           simp [hb, disjoint_left]
+  --         · use p
+  --           simp [hb, disjoint_left]
+  --     rw [this, card_insert_of_not_mem]
+  --     · simp
+  --     · intro h
+  --       simp at h
+  --       exact h (by simp)
+
+  --   -- subtract from pencil to get cardinality 1
+  --   have := filter_card_add_filter_neg_card_eq_card (fun ℓ => disjoint ℓ.val b.val) candidates
+  --   rw [add_comm, ←this, hcard] at this
+  --   simp only [this] at *
+  --   exact this.symm
+
+  -- -- now show: ∃! ℓ, p ∈ ℓ.val ∧ disjoint ℓ.val b.val
+  -- obtain ⟨ℓ, hmem, huniq⟩ := exists_unique_of_card_eq_one this
+  -- use ℓ
+  -- simp only [mem_filter, mem_univ, true_and] at hmem
+  -- refine ⟨hmem, fun ℓ' hℓ' => ?_⟩
+  -- have : ℓ' ∈ good := by simp [hℓ'.left, hℓ'.right]
+  -- exact huniq ℓ' this
 
 lemma every_line_has_two_points (l : affineAG22.Line) : #(affineAG22.trace l) = 2 := by
   simp [affineAG22, l.property]
