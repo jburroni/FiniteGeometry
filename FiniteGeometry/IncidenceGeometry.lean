@@ -91,6 +91,10 @@ def affineAG22 : IncidenceGeometry where
 
 namespace affineAG22Props
 
+instance : DecidableEq affineAG22.Point := inferInstanceAs (DecidableEq (Fin 4))
+instance : DecidableEq affineAG22.Line :=
+  inferInstanceAs (DecidableEq { s : Finset (Fin 4) // s.card = 2 })
+
 
 lemma pair_unique_line {a b} (h : a ≠ b) :
     ∃! l, affineAG22.incidence a l ∧ affineAG22.incidence b l := by
@@ -125,25 +129,61 @@ lemma every_line_has_two_points (l : affineAG22.Line) : #(affineAG22.trace l) = 
 
 lemma every_point_in_three_lines (p : affineAG22.Point) : #(affineAG22.pencil p) = 3 := by
   simp [affineAG22]
-  by
-    have : ∀ a : Fin 4, (Finset.univ.filter (fun l → a ∈ l.val)).card = 3 := by
-      intro a
-      let all_pairs := (Finset.univ : Finset (Fin 4)).erase a
-      have : (Finset.univ.filter (fun l → a ∈ l.val)) =
-             all_pairs.image (fun b → ⟨{a, b}, by simp [a ≠ b]⟩) := by
-        ext l
-        constructor
-        · simp only [Finset.mem_filter, Finset.mem_univ, true_and]
-          intro ha hc
-          rw [← Finset.eq_of_subset_of_card_le (Finset.subset_iff.2 hc) l.property]
-        · rintro ⟨b, hb, rfl⟩
-          simp [hb, a ≠ b]
-      rw [this, Finset.card_image_of_injective]
-      · exact Finset.card_erase_of_mem (Finset.mem_univ a)
-      · intro x y hxy
-        simp only [Subtype.mk.injEq] at hxy
-        apply Finset.ext_iff.1 hxy
-    exact this p
+  let others := (univ.erase p)
+
+  have h₁ : others.card = 3 := by
+    simp [others, card_erase_of_mem (Finset.mem_univ p), card_univ, affineAG22]
+
+  let lines : Finset affineAG22.Line := others.attach.image (λ ⟨q, hq⟩ =>
+    ⟨{p, q}, by
+      rw [Finset.card_insert_of_notMem]
+      · simp [Finset.card_singleton q]
+      · simp [Finset.mem_singleton]
+        exact (Finset.mem_erase.mp hq).1.symm⟩)
+
+  have h_sub : lines ⊆ pencil p := by
+    intro l hl
+    simp [pencil, affineAG22]
+    simp [lines, mem_image] at hl
+    rcases hl with ⟨q, _, rfl⟩
+    simp
+
+  have h_card : lines.card = 3 := by
+    rw [card_image_of_injOn]
+    · simp [h₁]
+    · intros q₁ _ q₂ _ h
+      simp at h
+      rw [Subtype.mk.injEq] at h
+      apply Subtype.eq
+      have hq₁ : ↑q₁ ≠ p := by  dsimp [others] at q₁
+                                have := q₁.property
+                                rw [Finset.mem_erase] at this
+                                exact this.1
+      rw [Finset.ext_iff] at h
+      specialize h q₁.val
+      simpa [Finset.mem_insert, Finset.mem_singleton, hq₁] using h
+
+  have h_sup : (Finset.univ.filter (fun ℓ => p ∈ ℓ.val)) ⊆ lines := by
+    intro ℓ hℓ
+    simp [Finset.mem_filter, Finset.mem_univ] at hℓ
+    have h₂ : ∃ q ∈ others, ℓ.val = {p, q} := by
+      dsimp [others]
+      simp
+      obtain ⟨a, b, hne, h_ab⟩ := card_eq_two.mp ℓ.property
+      simp [h_ab] at hℓ
+      rcases hℓ with rfl | rfl
+      · use b; exact ⟨Ne.symm hne, h_ab⟩
+      · use a; exact ⟨hne, by simpa [Finset.pair_comm] using h_ab⟩
+    rcases h₂ with ⟨q, hq, val_eq⟩
+    apply mem_image.mpr
+    use ⟨q, hq⟩
+    simp
+    congr; exact val_eq.symm
+
+  change pencil p ⊆ lines at h_sup
+  have h_eq : pencil p = lines := Subset.antisymm_iff.mpr ⟨h_sup, h_sub⟩
+  change #(pencil p) = 3
+  rw [h_eq, h_card]
 
 end affineAG22Props
 
