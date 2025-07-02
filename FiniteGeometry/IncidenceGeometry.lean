@@ -163,14 +163,14 @@ lemma every_point_in_three_lines (p : affineAG22.Point) : #(affineAG22.pencil p)
       specialize h q₁.val
       simpa [Finset.mem_insert, Finset.mem_singleton, hq₁] using h
 
-  have h_sup : (Finset.univ.filter (fun ℓ => p ∈ ℓ.val)) ⊆ lines := by
+  have h_sup : pencil p ⊆ lines := by
     intro ℓ hℓ
     simp [Finset.mem_filter, Finset.mem_univ] at hℓ
     have h₂ : ∃ q ∈ others, ℓ.val = {p, q} := by
       dsimp [others]
       simp
       obtain ⟨a, b, hne, h_ab⟩ := card_eq_two.mp ℓ.property
-      simp [h_ab] at hℓ
+      simp [affineAG22, h_ab] at hℓ
       rcases hℓ with rfl | rfl
       · use b; exact ⟨Ne.symm hne, h_ab⟩
       · use a; exact ⟨hne, by simpa [Finset.pair_comm] using h_ab⟩
@@ -180,7 +180,6 @@ lemma every_point_in_three_lines (p : affineAG22.Point) : #(affineAG22.pencil p)
     simp
     congr; exact val_eq.symm
 
-  change pencil p ⊆ lines at h_sup
   have h_eq : pencil p = lines := Subset.antisymm_iff.mpr ⟨h_sup, h_sub⟩
   change #(pencil p) = 3
   rw [h_eq, h_card]
