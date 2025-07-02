@@ -1,6 +1,6 @@
 # Finite Geometry in Lean 4
 
-A little project in which I'm formalizing Leandro Caniglia's notes on Finite Geometry in Lean 4.
+A little project in which I'm formalizing Leandro Caniglia's notes on Finite Geometry in Lean 4, using LLMs as much as possible.
 Currently, it only contains the basics of Latin squares and [Mutually Orthogonal Latin Squares (MOLS)](https://en.wikipedia.org/wiki/Mutually_orthogonal_Latin_squares), which I learned because of their application in statistics, specifically in incomplete U-statistics.
 > Blom, G. (1976). Some Properties of Incomplete U-Statistics. *Biometrika*, 63(3), 573–580. [Oxford University Press](https://doi.org/10.2307/2335635).
 
