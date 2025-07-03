@@ -248,7 +248,7 @@ lemma every_point_in_three_lines (p : affineAG22.Point) : #(affineAG22.pencil p)
 
   have h_sub : lines ⊆ pencil p := by
     intro l hl
-    simp [pencil, affineAG22]
+    simp [pencil]
     simp [lines, mem_image] at hl
     rcases hl with ⟨q, _, rfl⟩
     simp
