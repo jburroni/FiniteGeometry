@@ -270,7 +270,7 @@ lemma every_point_in_three_lines (p : affineAG22.Point) : #(affineAG22.pencil p)
 
   have h_sup : pencil p ⊆ lines := by
     intro ℓ hℓ
-    simp [Finset.mem_filter, Finset.mem_univ] at hℓ
+    simp [pencil] at hℓ
     have h₂ : ∃ q ∈ others, ℓ.val = {p, q} := by
       dsimp [others]
       simp
