@@ -100,6 +100,20 @@ namespace affineAG22Props
 def pencil (p : affineAG22.Point) : Finset affineAG22.Line := { l | p ∈ l.val }
 def trace (ℓ : affineAG22.Line) : Finset affineAG22.Point := ℓ.val
 
+lemma pencil_spec' {p : affineAG22.Point} {l : affineAG22.Line} :
+  l ∈ pencil p ↔ ∃ q, q ≠ p ∧ l.val = {p, q} := by
+  obtain ⟨a, b, hne, hab⟩ := Finset.card_eq_two.mp l.property
+  simp [affineAG22, hab] at l
+  simp [pencil]
+  constructor
+  · intro hp
+    simp [hab] at hp
+    rcases hp with rfl | rfl
+    · use b; exact ⟨hne.symm, hab⟩
+    · use a; exact ⟨hne, by simpa [Finset.pair_comm] using hab⟩
+  · rintro ⟨q, hne, h_eq⟩
+    simp [h_eq]
+
 
 instance : DecidableEq affineAG22.Point := inferInstanceAs (DecidableEq (Fin 4))
 instance : DecidableEq affineAG22.Line :=
@@ -166,44 +180,22 @@ lemma exists_unique_disjoint_line (p : affineAG22.Point) (b :affineAG22.Line) (h
     rw [h_eq] at hq₃_not_in_known
     contradiction
 
-  have hq₃p : q₃ ≠ p := by simp [this, known_points]
-  have hq₃q₁ : q₃ ≠ q₁ := by simp [this, known_points]
-  have hq₃q₂ : q₃ ≠ q₂ := by simp [this, known_points]
+  have hq₃_diff : q₃ ≠ p ∧ q₃ ≠ q₁ ∧ q₃ ≠ q₂ := by simp [this, known_points]
+  let ℓ : affineAG22.Line := ⟨{p, q₃}, card_pair hq₃_diff.1.symm⟩
 
-  let ℓ : affineAG22.Line := ⟨{p, q₃}, card_pair hq₃p.symm⟩
-
-  have hℓ_pencil : ℓ ∈ pencil p := by simp [pencil, ℓ, affineAG22]
-
+  have hℓ_pencil : ℓ ∈ pencil p := pencil_spec'.mpr ⟨q₃, hq₃_diff.1, rfl⟩
   have tr_ℓ: trace ℓ = {p, q₃} := by simp [ℓ, trace]
   have tr_b: trace b = {q₁, q₂} := by simp [hb, trace]
   have disjoint: Disjoint (trace ℓ) (trace b) := by
-    simp [tr_ℓ, tr_b, Finset.disjoint_left, p_ne_q₁, p_ne_q₂, hq₃q₁, hq₃q₂]
+    simp [tr_ℓ, tr_b, Finset.disjoint_left, p_ne_q₁, p_ne_q₂, hq₃_diff]
 
   use ℓ
   constructor
   · exact ⟨hℓ_pencil, disjoint⟩
-  simp [trace, pencil, h]
-
-  intro ℓ' hℓ'
-
-  have : ∃ q, ℓ'.val = {p, q} := by
-
-    obtain ⟨a, b, hne, hab⟩ := Finset.card_eq_two.mp ℓ'.property
-    rw [hab] at hℓ'
-    rw [Finset.mem_insert, Finset.mem_singleton] at hℓ'
-    rcases hℓ' with rfl | rfl
-    · use b
-    · rw [Finset.pair_comm] at hab; use a
-  intro h_disjoint
+  simp [trace, h]
+  intro ℓ' hℓ' h_disjoint
+  have ⟨q, hq, h_eq⟩ : ∃ q, q ≠ p ∧ ℓ'.val = {p, q} := pencil_spec'.mp hℓ'
   simp [hb] at h_disjoint
-  rcases this with ⟨q, h_eq⟩
-  have hq : q ≠ p := by
-    intro h_eq_qp
-    subst h_eq_qp
-    simp [pair_eq_singleton] at h_eq
-    have := ℓ'.property
-    rw [h_eq, card_singleton] at this
-    simp at this
   have hq₁' : q ≠ q₁ := by
     intro h_eq_q₁q
     subst h_eq_q₁q
@@ -270,20 +262,11 @@ lemma every_point_in_three_lines (p : affineAG22.Point) : #(affineAG22.pencil p)
 
   have h_sup : pencil p ⊆ lines := by
     intro ℓ hℓ
-    simp [pencil] at hℓ
-    have h₂ : ∃ q ∈ others, ℓ.val = {p, q} := by
-      dsimp [others]
-      simp
-      obtain ⟨a, b, hne, h_ab⟩ := card_eq_two.mp ℓ.property
-      simp [affineAG22, h_ab] at hℓ
-      rcases hℓ with rfl | rfl
-      · use b; exact ⟨Ne.symm hne, h_ab⟩
-      · use a; exact ⟨hne, by simpa [Finset.pair_comm] using h_ab⟩
-    rcases h₂ with ⟨q, hq, val_eq⟩
+    have ⟨q, hq', h_eq⟩ := pencil_spec'.mp hℓ
+    have hq : q ∈ others := by simp [others, hq']
     apply mem_image.mpr
     use ⟨q, hq⟩
-    simp
-    congr; exact val_eq.symm
+    simp; congr; exact h_eq.symm
 
   have h_eq : pencil p = lines := Subset.antisymm_iff.mpr ⟨h_sup, h_sub⟩
   change #(pencil p) = 3
