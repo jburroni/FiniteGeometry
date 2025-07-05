@@ -141,18 +141,15 @@ lemma pair_unique_line {a b} (h : a ≠ b) :
   obtain ⟨x, y, hxy, hx⟩ := Finset.card_eq_two.mp l'.prop
   rw [hx] at h_a h_b
   have h' : pair = {x, y} := by
-    apply Finset.eq_of_subset_of_card_le
-    · intro z hz
-      rw [Finset.mem_insert, Finset.mem_singleton] at hz
-      rcases hz with rfl | rfl <;> assumption
-    · have h_card : ({x, y} : Finset (Fin 4)).card = 2 := by
-        rw [Finset.card_insert_of_notMem, Finset.card_singleton]
-        simp [hxy]
-      simp [h_card]
-      have h_pair_card : pair.card = 2 := by
-        rw [Finset.card_insert_of_notMem, Finset.card_singleton]
-        simp [h]
-      simp [h_pair_card]
+    ext z
+    simp [mem_insert] at h_a h_b
+    rcases h_a with rfl | rfl
+    · rcases h_b with rfl| rfl
+      · contradiction
+      · simp [pair]
+    · rcases h_b with rfl | rfl
+      · simp [pair_comm, pair]
+      · contradiction
   rw [hx, ←h']
 
 lemma exists_unique_disjoint_line (p : affineAG22.Point) (b :affineAG22.Line) (h : p ∉ b.val) :
