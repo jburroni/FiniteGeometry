@@ -140,17 +140,11 @@ lemma pair_unique_line {a b} (h : a ≠ b) :
   apply Subtype.ext
   obtain ⟨x, y, hxy, hx⟩ := Finset.card_eq_two.mp l'.prop
   rw [hx] at h_a h_b
-  have h' : pair = {x, y} := by
-    ext z
-    simp [mem_insert] at h_a h_b
-    rcases h_a with rfl | rfl
-    · rcases h_b with rfl| rfl
-      · contradiction
-      · simp [pair]
-    · rcases h_b with rfl | rfl
-      · simp [pair_comm, pair]
-      · contradiction
-  rw [hx, ←h']
+  have h' : {x, y} = pair := by
+    simp [pair] at *
+    rcases h_a, h_b with ⟨rfl | rfl, rfl | rfl⟩
+    <;> simpa [pair_comm] using h
+  rw [hx, h']
 
 lemma exists_unique_disjoint_line (p : affineAG22.Point) (b :affineAG22.Line) (h : p ∉ b.val) :
     ∃! ℓ, ℓ ∈ pencil p  ∧ Disjoint (trace ℓ) (trace b) := by
