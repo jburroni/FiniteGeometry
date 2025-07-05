@@ -187,17 +187,16 @@ lemma exists_unique_disjoint_line (p : affineAG22.Point) (b :affineAG22.Line) (h
   simp [trace, h]
   intro ℓ' hℓ' h_disjoint
   have ⟨q, hq, h_eq⟩ : ∃ q, q ≠ p ∧ ℓ'.val = {p, q} := pencil_spec'.mp hℓ'
+
+  suffices h_eq' : q = q₃ by
+    apply Subtype.ext; rw [h_eq, h_eq']
+
   simp [hb, h_eq] at h_disjoint
   have hq₁' : q ≠ q₁ := Ne.symm h_disjoint.1.2
   have hq₂' : q ≠ q₂ := Ne.symm h_disjoint.2.2
-  have hq' : q₃ = q := by
-    symm
-    have : q ∈ known_pointsᶜ := by
-      simp [known_points, hq, hq₁', hq₂']
-    simpa [q₃_comp] using this
-  subst hq'
-  apply Subtype.ext
-  rw [h_eq]
+  have : q ∈ known_pointsᶜ := by
+    simp [known_points, hq, hq₁', hq₂']
+  simpa [q₃_comp] using this
 
 
 lemma every_line_has_two_points (l : affineAG22.Line) : #(affineAG22.trace l) = 2 := by
