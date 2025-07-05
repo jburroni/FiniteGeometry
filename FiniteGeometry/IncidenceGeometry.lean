@@ -5,6 +5,13 @@ import Mathlib.Data.Finset.Card
 import Mathlib.Data.Finset.Basic
 import Mathlib.Data.Fintype.Basic
 
+namespace Finset
+open Finset
+variable {α : Type*}
+variable [Fintype α]
+variable [DecidableEq α] {a b : α}
+theorem mem_compl_singleton {a b : α} : a ∈ ({b}ᶜ : Finset α) ↔ a ≠ b := by
+  simp only [mem_compl, mem_singleton, ne_eq]
 
 structure IncidenceGeometry where
   Point : Type*
@@ -117,7 +124,7 @@ lemma pencil_spec' {p : affineAG22.Point} {l : affineAG22.Line} :
 
 instance : DecidableEq affineAG22.Point := inferInstanceAs (DecidableEq (Fin 4))
 instance : DecidableEq affineAG22.Line :=
-  inferInstanceAs (DecidableEq { s : Finset (Fin 4) // s.card = 2 })
+  inferInstanceAs (DecidableEq { s : Finset (Fin 4) // #s = 2 })
 
 
 lemma pair_unique_line {a b} (h : a ≠ b) :
@@ -128,8 +135,8 @@ lemma pair_unique_line {a b} (h : a ≠ b) :
   use l
   constructor
   · simp [l, pair]
-
   rintro l' ⟨h_a, h_b⟩
+  show l'= l
   apply Subtype.ext
   obtain ⟨x, y, hxy, hx⟩ := Finset.card_eq_two.mp l'.prop
   rw [hx] at h_a h_b
@@ -224,19 +231,19 @@ lemma exists_unique_disjoint_line (p : affineAG22.Point) (b :affineAG22.Line) (h
 lemma every_line_has_two_points (l : affineAG22.Line) : #(affineAG22.trace l) = 2 := by
   simp [affineAG22, l.property]
 
-lemma every_point_in_three_lines (p : affineAG22.Point) : #(affineAG22.pencil p) = 3 := by
+lemma every_point_in_three_lines (p : affineAG22.Point) : #(pencil p) = 3 := by
   simp [affineAG22]
-  let others := (univ.erase p)
+  let others : Finset affineAG22.Point := {p}ᶜ
 
   have h₁ : others.card = 3 := by
-    simp [others, card_erase_of_mem (Finset.mem_univ p), card_univ, affineAG22]
+    simp [others, card_compl, affineAG22]
 
   let lines : Finset affineAG22.Line := others.attach.image (λ ⟨q, hq⟩ =>
     ⟨{p, q}, by
       rw [Finset.card_insert_of_notMem]
       · simp [Finset.card_singleton q]
-      · simp [Finset.mem_singleton]
-        exact (Finset.mem_erase.mp hq).1.symm⟩)
+      · simp [Finset.mem_singleton]; simp [others] at hq
+        exact Ne.symm hq⟩)
 
   have h_sub : lines ⊆ pencil p := by
     intro l hl
@@ -252,10 +259,7 @@ lemma every_point_in_three_lines (p : affineAG22.Point) : #(affineAG22.pencil p)
       simp at h
       rw [Subtype.mk.injEq] at h
       apply Subtype.eq
-      have hq₁ : ↑q₁ ≠ p := by  dsimp [others] at q₁
-                                have := q₁.property
-                                rw [Finset.mem_erase] at this
-                                exact this.1
+      have hq₁ : ↑q₁ ≠ p := mem_compl_singleton.mp q₁.property
       rw [Finset.ext_iff] at h
       specialize h q₁.val
       simpa [Finset.mem_insert, Finset.mem_singleton, hq₁] using h
