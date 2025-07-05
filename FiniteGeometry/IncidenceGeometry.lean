@@ -136,15 +136,16 @@ lemma pair_unique_line {a b} (h : a ≠ b) :
   constructor
   · simp [l, pair]
   rintro l' ⟨h_a, h_b⟩
+
   show l'= l
   apply Subtype.ext
-  obtain ⟨x, y, hxy, hx⟩ := Finset.card_eq_two.mp l'.prop
-  rw [hx] at h_a h_b
-  have h' : {x, y} = pair := by
-    simp [pair] at *
-    rcases h_a, h_b with ⟨rfl | rfl, rfl | rfl⟩
-    <;> simpa [pair_comm] using h
-  rw [hx, h']
+  obtain ⟨x, y, _, l'.val⟩ := card_eq_two.mp l'.prop
+  simp [l'.val] at *
+
+  suffices h' : {x, y} = pair by rw [h']
+  simp [pair]
+  rcases h_a, h_b with ⟨rfl | rfl, rfl | rfl⟩
+  <;> simpa [pair_comm] using h
 
 lemma exists_unique_disjoint_line (p : affineAG22.Point) (b :affineAG22.Line) (h : p ∉ b.val) :
     ∃! ℓ, ℓ ∈ pencil p  ∧ Disjoint (trace ℓ) (trace b) := by
@@ -155,7 +156,7 @@ lemma exists_unique_disjoint_line (p : affineAG22.Point) (b :affineAG22.Line) (h
     intro eq; subst eq; exact h (by simp [hb])
 
   let known_points : Finset affineAG22.Point := {p, q₁, q₂}
-  let remaining := (Finset.univ : Finset affineAG22.Point) \ known_points
+  let remaining := (univ : Finset affineAG22.Point) \ known_points
   have h_remaining_card : #remaining = 1 := by
     have h_known_card : #known_points = 3 := by
       show #({p, q₁, q₂} : Finset affineAG22.Point) = 3
@@ -167,16 +168,9 @@ lemma exists_unique_disjoint_line (p : affineAG22.Point) (b :affineAG22.Line) (h
 
   obtain ⟨q₃, hq₃⟩ := Finset.card_eq_one.mp h_remaining_card
 
-  have hq₃_not_in_known : q₃ ∉ known_points := by
-    have h_q₃_in_remaining : q₃ ∈ remaining := by
-      rw [hq₃]
-      simp
-    exact Finset.mem_sdiff.mp h_q₃_in_remaining |>.2
-
-  have : ∀ q, q ∈ known_points → q₃ ≠ q := by
-    intro q hq h_eq
-    rw [h_eq] at hq₃_not_in_known
-    contradiction
+  have q₃_comp : known_points = {q₃}ᶜ := eq_compl_comm.mp hq₃.symm
+  have : ∀ q, q ∈ known_points → q₃ ≠ q := fun _ a
+    ↦ Ne.symm (ne_of_mem_of_not_mem a (by simp[q₃_comp]))
 
   have hq₃_diff : q₃ ≠ p ∧ q₃ ≠ q₁ ∧ q₃ ≠ q₂ := by simp [this, known_points]
   let ℓ : affineAG22.Line := ⟨{p, q₃}, card_pair hq₃_diff.1.symm⟩
@@ -193,27 +187,14 @@ lemma exists_unique_disjoint_line (p : affineAG22.Point) (b :affineAG22.Line) (h
   simp [trace, h]
   intro ℓ' hℓ' h_disjoint
   have ⟨q, hq, h_eq⟩ : ∃ q, q ≠ p ∧ ℓ'.val = {p, q} := pencil_spec'.mp hℓ'
-  simp [hb] at h_disjoint
-  have hq₁' : q ≠ q₁ := by
-    intro h_eq_q₁q
-    subst h_eq_q₁q
-    have := h_disjoint.1
-    rw [h_eq] at this
-    simp at this
-  have hq₂' : q ≠ q₂ := by
-    intro h_eq_q₂q
-    subst h_eq_q₂q
-    have := h_disjoint.2
-    rw [h_eq] at this
-    simp at this
+  simp [hb, h_eq] at h_disjoint
+  have hq₁' : q ≠ q₁ := Ne.symm h_disjoint.1.2
+  have hq₂' : q ≠ q₂ := Ne.symm h_disjoint.2.2
   have hq' : q₃ = q := by
-    have hq_not_in_known : q ∉ known_points := by
-      simp [known_points, mem_insert, mem_singleton, hq, hq₁', hq₂']
-
-    have hq_in_remaining : q ∈ remaining := by
-      rw [mem_sdiff]; simp [mem_univ, hq_not_in_known]
-    rw [hq₃] at hq_in_remaining
-    exact (mem_singleton.mp hq_in_remaining).symm
+    symm
+    have : q ∈ known_pointsᶜ := by
+      simp [known_points, hq, hq₁', hq₂']
+    simpa [q₃_comp] using this
   subst hq'
   apply Subtype.ext
   rw [h_eq]
