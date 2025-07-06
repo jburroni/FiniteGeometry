@@ -216,13 +216,6 @@ lemma every_point_in_three_lines (p : affineAG22.Point) : #(pencil p) = 3 := by
       · simp [Finset.mem_singleton]; simp [others] at hq
         exact Ne.symm hq⟩)
 
-  have h_sub : lines ⊆ pencil p := by
-    intro l hl
-    simp [pencil]
-    simp [lines, mem_image] at hl
-    rcases hl with ⟨q, _, rfl⟩
-    simp
-
   have h_card : lines.card = 3 := by
     rw [card_image_of_injOn]
     · simp [h₁]
@@ -235,7 +228,15 @@ lemma every_point_in_three_lines (p : affineAG22.Point) : #(pencil p) = 3 := by
       specialize h q₁.val
       simpa [Finset.mem_insert, Finset.mem_singleton, hq₁] using h
 
-  have h_sup : pencil p ⊆ lines := by
+  suffices h_lines : lines = pencil p by rw [h_lines.symm, h_card]
+  refine Subset.antisymm_iff.mpr ⟨?hsub, ?hsup⟩
+  · show lines ⊆ pencil p
+    intro l hl
+    simp [pencil]
+    simp [lines, mem_image] at hl
+    rcases hl with ⟨q, _, rfl⟩
+    simp
+  · show pencil p ⊆ lines
     intro ℓ hℓ
     have ⟨q, hq', h_eq⟩ := pencil_spec'.mp hℓ
     have hq : q ∈ others := by simp [others, hq']
@@ -243,9 +244,6 @@ lemma every_point_in_three_lines (p : affineAG22.Point) : #(pencil p) = 3 := by
     use ⟨q, hq⟩
     simp; congr; exact h_eq.symm
 
-  have h_eq : pencil p = lines := Subset.antisymm_iff.mpr ⟨h_sup, h_sub⟩
-  change #(pencil p) = 3
-  rw [h_eq, h_card]
 
 end affineAG22Props
 
