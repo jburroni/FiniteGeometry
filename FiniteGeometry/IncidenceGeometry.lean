@@ -9,8 +9,8 @@ namespace Finset
 open Finset
 variable {α : Type*}
 variable [Fintype α]
-variable [DecidableEq α]
-theorem mem_compl_singleton {α : Type*} [DecidableEq α] {a b : α} : a ∈ ({b}ᶜ : Finset α) ↔ a ≠ b := by
+variable [DecidableEq α] {a b : α}
+theorem mem_compl_singleton {a b : α} : a ∈ ({b}ᶜ : Finset α) ↔ a ≠ b := by
   simp only [mem_compl, mem_singleton, ne_eq]
 
 structure IncidenceGeometry where
