@@ -1,6 +1,13 @@
 import FiniteGeometry.IncidenceGeometry
 
 
+namespace Finset
+open Finset
+variable {α : Type*} [Fintype α] [DecidableEq α]
+theorem mem_compl_singleton {a b : α} : a ∈ ({b}ᶜ : Finset α) ↔ a ≠ b := by
+  simp only [mem_compl, mem_singleton, ne_eq]
+end Finset
+
 section Examples
 -- To avoid linter warnings when simpa is applied to many goals
 set_option linter.unnecessarySimpa false
@@ -25,7 +32,6 @@ def trace (ℓ : affineAG22.Line) : Finset affineAG22.Point := ℓ.val
 lemma pencil_spec' {p : affineAG22.Point} {l : affineAG22.Line} :
   l ∈ pencil p ↔ ∃ q, q ≠ p ∧ l.val = {p, q} := by
   obtain ⟨a, b, hne, hab⟩ := Finset.card_eq_two.mp l.property
-  simp [affineAG22, hab] at l
   simp [pencil]
   constructor
   · intro hp
@@ -64,7 +70,7 @@ lemma pair_unique_line {a b} (h : a ≠ b) :
 
 lemma exists_unique_disjoint_line (p : affineAG22.Point) (b :affineAG22.Line) (h : p ∉ b.val) :
     ∃! ℓ, ℓ ∈ pencil p  ∧ Disjoint (trace ℓ) (trace b) := by
-  obtain ⟨q₁, q₂, hq, hb⟩ := Finset.card_eq_two.mp b.property
+  obtain ⟨q₁, q₂, h_neq, hb⟩ := Finset.card_eq_two.mp b.property
   have p_ne_q₁ : p ≠ q₁ := by
     intro eq; subst eq; exact h (by simp [hb])
   have p_ne_q₂ : p ≠ q₂ := by
@@ -76,7 +82,7 @@ lemma exists_unique_disjoint_line (p : affineAG22.Point) (b :affineAG22.Line) (h
     have h_known_card : #known_points = 3 := by
       show #({p, q₁, q₂} : Finset affineAG22.Point) = 3
       rw [Finset.card_insert_of_notMem, Finset.card_insert_of_notMem, Finset.card_singleton]
-      · simp [hq]
+      · simp [h_neq]
       · simp [p_ne_q₁, p_ne_q₂]
     have h_univ_card : #(Finset.univ : Finset affineAG22.Point) = 4 := by rfl
     simp [remaining, Finset.card_sdiff, h_univ_card, h_known_card]
