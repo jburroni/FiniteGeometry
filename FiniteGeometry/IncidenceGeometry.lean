@@ -5,13 +5,6 @@ import Mathlib.Data.Finset.Card
 import Mathlib.Data.Finset.Basic
 import Mathlib.Data.Fintype.Basic
 
-namespace Finset
-open Finset
-variable {α : Type*}
-variable [Fintype α]
-variable [DecidableEq α] {a b : α}
-theorem mem_compl_singleton {a b : α} : a ∈ ({b}ᶜ : Finset α) ↔ a ≠ b := by
-  simp only [mem_compl, mem_singleton, ne_eq]
 
 structure IncidenceGeometry where
   Point : Type*
