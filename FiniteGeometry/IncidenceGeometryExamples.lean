@@ -26,6 +26,7 @@ def affineAG22 : IncidenceGeometry where
 
 namespace affineAG22Props
 
+namespace affineAG22
 def pencil (p : affineAG22.Point) : Finset affineAG22.Line := { l | p ∈ l.val }
 def trace (ℓ : affineAG22.Line) : Finset affineAG22.Point := ℓ.val
 
@@ -42,7 +43,9 @@ lemma pencil_spec' {p : affineAG22.Point} {l : affineAG22.Line} :
   · rintro ⟨q, hne, h_eq⟩
     simp [h_eq]
 
+end affineAG22
 
+open affineAG22
 instance : DecidableEq affineAG22.Point := inferInstanceAs (DecidableEq (Fin 4))
 instance : DecidableEq affineAG22.Line :=
   inferInstanceAs (DecidableEq { s : Finset (Fin 4) // #s = 2 })
@@ -121,17 +124,15 @@ lemma exists_unique_disjoint_line (p : affineAG22.Point) (b :affineAG22.Line) (h
 
 
 lemma every_line_has_two_points (l : affineAG22.Line) : #(affineAG22.trace l) = 2 := by
-  simp [affineAG22, l.property]
+  simp [trace, l.property]
 
 lemma every_point_in_three_lines (p : affineAG22.Point) : #(pencil p) = 3 := by
-  simp [affineAG22]
   let others : Finset affineAG22.Point := {p}ᶜ
 
   have h₁ : others.card = 3 := by
     simp [others, card_compl, affineAG22]
 
-  let lines : Finset affineAG22.Line := others.attach.image (λ ⟨q, hq⟩ =>
-    ⟨{p, q}, by
+  let lines : Finset affineAG22.Line := others.attach.image (λ ⟨q, hq⟩ => ⟨{p, q}, by
       rw [Finset.card_insert_of_notMem]
       · simp [Finset.card_singleton q]
       · simp [Finset.mem_singleton]; simp [others] at hq
@@ -149,7 +150,7 @@ lemma every_point_in_three_lines (p : affineAG22.Point) : #(pencil p) = 3 := by
       specialize h q₁.val
       simpa [Finset.mem_insert, Finset.mem_singleton, hq₁] using h
 
-  suffices h_lines : lines = pencil p by rw [h_lines.symm, h_card]
+  suffices h_lines : lines = pencil p by simp [h_lines.symm, h_card]
   refine Subset.antisymm_iff.mpr ⟨?hsub, ?hsup⟩
   · show lines ⊆ pencil p
     intro l hl

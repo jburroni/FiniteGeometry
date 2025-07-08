@@ -12,28 +12,20 @@ structure IncidenceGeometry where
   incidence : Point → Line → Prop
   [point_fintype : Fintype Point]
   [line_fintype : Fintype Line]
-  [decidable_incidence : ∀ (p : Point) (ℓ : Line), Decidable (incidence p ℓ)]
+
 namespace IncidenceGeometry
 
 variable {G : IncidenceGeometry}
 instance : Fintype G.Point := G.point_fintype
 instance : Fintype G.Line := G.line_fintype
-instance : ∀ (p : G.Point) (ℓ : G.Line), Decidable (G.incidence p ℓ) := G.decidable_incidence
 
 
 @[simp]
-def trace (ℓ : G.Line) : Finset G.Point :=  Finset.univ.filter (fun p => G.incidence p ℓ)
+def trace (ℓ : G.Line) :=  { p : G.Point // G.incidence p ℓ }
 
 @[simp]
-def pencil (p : G.Point) : Finset G.Line :=  Finset.univ.filter (fun ℓ => G.incidence p ℓ)
+def pencil (p : G.Point) :=  { ℓ : G.Line // G.incidence p ℓ }
 
-@[simp]
-lemma trace_spec (ℓ : G.Line) (p : G.Point) :
-  p ∈ G.trace ℓ ↔ G.incidence p ℓ := by simp
-
-@[simp]
-lemma pencil_spec (p : G.Point) (ℓ : G.Line) :
-  ℓ ∈ G.pencil p ↔ G.incidence p ℓ := by simp
 
 section Category
 open CategoryTheory
@@ -79,7 +71,6 @@ def dual (G : IncidenceGeometry) : IncidenceGeometry where
   incidence := fun l p ↦ G.incidence p l
   point_fintype := G.line_fintype
   line_fintype := G.point_fintype
-  decidable_incidence := fun l p ↦ G.decidable_incidence p l
 
 
 end Category
