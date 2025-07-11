@@ -20,13 +20,25 @@ def steinerS335 : IncidenceGeometry where
 
 def affineAG22 : IncidenceGeometry where
   Point := Fin 4
-  Line := { s : Finset (Fin 4) // s.card = 2 }
+  Line := { s : Finset (Fin 4) // #s = 2 }
   incidence := fun p b ↦ p ∈ b.val
 
 
 namespace affineAG22Props
 
 namespace affineAG22
+
+def twoSubsets : Finset (Finset (Fin 4)) :=
+  (Finset.univ : Finset (Finset (Fin 4))).filter (fun s ↦ s.card = 2)
+
+lemma twoSubsets_spec :
+    ∀ s : Finset (Fin 4), s ∈ twoSubsets ↔ s.card = 2 := by
+  intro s
+  simp [twoSubsets]
+
+instance : Fintype affineAG22.Line := Fintype.subtype twoSubsets twoSubsets_spec
+instance : Fintype affineAG22.Point := inferInstanceAs (Fintype (Fin 4))
+
 def pencil (p : affineAG22.Point) : Finset affineAG22.Line := { l | p ∈ l.val }
 def trace (ℓ : affineAG22.Line) : Finset affineAG22.Point := ℓ.val
 

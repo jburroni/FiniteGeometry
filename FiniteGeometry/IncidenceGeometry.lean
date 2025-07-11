@@ -10,21 +10,18 @@ structure IncidenceGeometry where
   Point : Type*
   Line : Type*
   incidence : Point → Line → Prop
-  [point_fintype : Fintype Point]
-  [line_fintype : Fintype Line]
 
 namespace IncidenceGeometry
 
 variable {G : IncidenceGeometry}
-instance : Fintype G.Point := G.point_fintype
-instance : Fintype G.Line := G.line_fintype
 
 
-@[simp]
-def trace (ℓ : G.Line) :=  { p : G.Point // G.incidence p ℓ }
 
 @[simp]
-def pencil (p : G.Point) :=  { ℓ : G.Line // G.incidence p ℓ }
+def trace (ℓ : G.Line) : Set G.Point := { p | G.incidence p ℓ }
+
+@[simp]
+def pencil (p : G.Point) : Set G.Line :=  { ℓ : G.Line | G.incidence p ℓ }
 
 
 section Category
@@ -69,10 +66,47 @@ def dual (G : IncidenceGeometry) : IncidenceGeometry where
   Point := G.Line
   Line := G.Point
   incidence := fun l p ↦ G.incidence p l
-  point_fintype := G.line_fintype
-  line_fintype := G.point_fintype
+
 
 
 end Category
+
+section ExtraDefinitions
+
+variable {G : IncidenceGeometry}
+
+def collinear (S : Set G.Point) : Prop :=
+  ∃ ℓ : G.Line, S ⊆ (trace ℓ : Set G.Point)
+
+def triangle (T : Finset G.Point) : Prop :=
+  T.card = 3 ∧ ¬ collinear (T : Set G.Point)
+
+def generalPosition (S : Set G.Point) : Prop :=
+  ∀ T : Finset G.Point, (T : Set G.Point) ⊆ S → T.card = 3 → triangle T
+
+def concurrent (L : Set G.Line) : Prop :=
+  ∃ p : G.Point, L ⊆ (pencil p : Set G.Line)
+
+
+structure Subgeometry (G : IncidenceGeometry) where
+  PointSub : Set G.Point
+  LineSub  : Set G.Line
+
+namespace Subgeometry
+
+def incidence {G : IncidenceGeometry} (H : Subgeometry G)
+    (p : { q : G.Point // q ∈ H.PointSub })
+    (ℓ : { m : G.Line  // m ∈ H.LineSub }) : Prop :=
+  G.incidence p.val ℓ.val
+
+def toIncidenceGeometry {G : IncidenceGeometry} (H : Subgeometry G) : IncidenceGeometry :=
+{ Point          := { p : G.Point // p ∈ H.PointSub }
+  Line           := { ℓ : G.Line  // ℓ ∈ H.LineSub }
+  incidence      := H.incidence
+}
+
+end Subgeometry
+
+end ExtraDefinitions
 
 end IncidenceGeometry
