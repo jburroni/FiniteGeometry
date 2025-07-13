@@ -71,6 +71,16 @@ def triSet (a b c : G.Point) : Set G.Point :=
 def noncollinear (a b c : G.Point) : Prop :=
   ¬ IncidenceGeometry.collinear (triSet a b c)
 
+lemma noncollinear_incidence (ℓ : G.Line) :
+  noncollinear A B C → ¬G.incidence A ℓ ∧ ¬G.incidence B ℓ ∧ ¬G.incidence C ℓ := by
+  intro h
+  -- sorry
+  -- push_neg at h
+  -- rcases h with (hA | hB | hC)
+  -- · exact ⟨hA, hB, hC⟩
+  -- · exact ⟨hB, hC, hA⟩
+  -- · exact ⟨hC, hA, hB⟩
+
 lemma noncollinear_perm (a b c : G.Point) :
   noncollinear a b c ↔ noncollinear b c a ∧ noncollinear c a b := by
   simp only [noncollinear, collinear, triSet]
@@ -128,7 +138,8 @@ lemma three_points_on_line (ℓ : G.Line) (hP1 : P1 (G := G)) (hP2 : P2 (G := G)
      hAB,hAC,hAD,hBC,hBD,hCD,
      hABC,hABD,hACD,hBCD⟩
   wlog h_not_A : ¬ G.incidence A ℓ
-  · suffices h: ¬ G.incidence B ℓ ∨ ¬ G.incidence C ℓ by
+  · suffices h: ¬ (G.incidence B ℓ ∧ G.incidence C ℓ) by
+      have : ¬G.incidence B ℓ ∨ ¬ G.incidence C ℓ := by
       rcases h with (hB | hC)
       · have h_bad: noncollinear B A D := by
           simp [noncollinear]
