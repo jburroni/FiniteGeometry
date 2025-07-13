@@ -133,28 +133,39 @@ lemma three_points_on_line (ℓ : G.Line) (hP1 : P1 (G := G)) (hP2 : P2 (G := G)
       · have h_bad: noncollinear B A D := by
           simp [noncollinear]
           have : triSet B A D = triSet A B D := by
-            simp [triSet]; ext x; constructor <;> intro h' <;> simp
-            <;> rcases h' with rfl | rfl | rfl <;> tauto
+            ext x; simp [triSet]; tauto
           rw [this]
           exact hABD
         have h_BAC : noncollinear B A C := by
           simp [noncollinear]
           have : triSet B A C = triSet A B C := by
-            simp [triSet]; ext x; constructor <;> intro h' <;> simp
-            <;> rcases h' with rfl | rfl | rfl <;> tauto
-          rw [this]
-          exact hABC
-
-        have h_BAC : noncollinear B A C := by
-          simp [noncollinear]
-          have : triSet B A C = triSet A B C := by
-            simp [triSet]; ext x; constructor <;> intro h' <;> simp
-            <;> rcases h' with rfl | rfl | rfl <;> tauto
+            ext x; simp [triSet]; tauto
           rw [this]
           exact hABC
 
         apply this ℓ hP1 hP2 B A C D hAB.symm hBC hBD hAC hAD hCD h_BAC h_bad hBCD hACD hB
-      · apply this ℓ hP1 hP2 C A B D hAC.symm hBC.symm hCD hAB hAD hBD -- hBCD hACD hB
+      · have h_CAB : noncollinear C A B := by
+          simp [noncollinear]
+          have : triSet C A B = triSet A B C := by
+            ext x; simp [triSet]; tauto
+          rw [this]
+          exact hABC
+        have h_CAD : noncollinear C A D := by
+          simp [noncollinear]
+          have : triSet C A D = triSet A C D := by
+            ext x; simp [triSet]; tauto
+          rw [this]
+          exact hACD
+        have h_CBD : noncollinear C B D := by
+          simp [noncollinear]
+          have : triSet C B D = triSet B C D := by
+            ext x; simp [triSet]; tauto
+          rw [this]
+          exact hBCD
+
+        exact this ℓ hP1 hP2 C A B D hAC.symm hBC.symm hCD hAB hAD hBD h_CAB h_CAD h_CBD hABD hC
+    unfold noncollinear collinear triSet trace at hABC
+    convert ¬(G.incidence B ℓ  ∧ G.incidence C ℓ)
 
 
 
