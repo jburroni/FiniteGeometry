@@ -7,11 +7,11 @@ variable {G : IncidenceGeometry}
 
 @[reducible] def P1 : Prop :=
   ∀ {p q : G.Point}, p ≠ q →
-    ∃! ℓ : G.Line, G.incidence p ℓ ∧ G.incidence q ℓ
+    ∃! ℓ : G.Line, p ∈ᵢ ℓ ∧ q ∈ᵢ ℓ
 
 @[reducible] def P2 : Prop :=
   ∀ {ℓ m : G.Line}, ℓ ≠ m →
-    ∃! p : G.Point, G.incidence p ℓ ∧ G.incidence p m
+    ∃! p : G.Point, p ∈ᵢ ℓ ∧ p ∈ᵢ m
 
 end ProjectivePrereqs
 
@@ -22,12 +22,12 @@ class ProjectivePlane (G : IncidenceGeometry) : Prop where
     ∀ ℓ : G.Line,
       ∃ p q r : G.Point,
         p ≠ q ∧ p ≠ r ∧ q ≠ r ∧
-        G.incidence p ℓ ∧ G.incidence q ℓ ∧ G.incidence r ℓ
+        p ∈ᵢ ℓ ∧ q ∈ᵢ ℓ ∧ r ∈ᵢ ℓ
   P4 :
     ∀ p : G.Point,
       ∃ ℓ m n : G.Line,
         ℓ ≠ m ∧ ℓ ≠ n ∧ m ≠ n ∧
-        G.incidence p ℓ ∧ G.incidence p m ∧ G.incidence p n
+        p ∈ᵢ ℓ ∧ p ∈ᵢ m ∧ p ∈ᵢ n
 
 
 instance dual_projective (G : IncidenceGeometry) [ProjectivePlane G] : ProjectivePlane G.dual where
@@ -47,7 +47,7 @@ def noncollinear (a b c : G.Point) : Prop :=
   ¬ IncidenceGeometry.collinear (triSet a b c)
 
 lemma noncollinear_incidence (ℓ : G.Line) :
-  noncollinear A B C → ¬G.incidence A ℓ ∨ ¬G.incidence B ℓ ∨ ¬G.incidence C ℓ := by
+  noncollinear A B C → ¬A ∈ᵢ ℓ ∨ ¬B ∈ᵢ ℓ ∨ ¬C ∈ᵢ ℓ := by
   intro h; simp only [noncollinear, triSet, collinear, trace] at h
   push_neg at h; specialize h ℓ
   -- The following tauto is _classical_
@@ -72,7 +72,7 @@ def P3' : Prop :=
     noncollinear B C D
 
 def P3'' : Prop :=
-  (∃ p ℓ, G.incidence p ℓ) ∧ ∀ ℓ m, ∃ p, ¬ G.incidence p ℓ ∧ ¬ G.incidence p m
+  (∃ p ℓ, G.incidence p ℓ) ∧ ∀ ℓ m : G.Line, ∃ p, ¬ p ∈ᵢ ℓ ∧ ¬ p ∈ᵢ m
 
 end AlternativeAxioms
 
@@ -83,8 +83,7 @@ variable (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G))
 
 lemma line_eq_of_point_eq
     (hP1 : P1 (G := G)) {A P : G.Point} (hA_ne_P : A ≠ P) {ℓ m : G.Line}
-    (hAℓ : G.incidence A ℓ) (hPℓ : G.incidence P ℓ)
-    (hAm : G.incidence A m) (hPm : G.incidence P m) : ℓ = m := by
+    (hAℓ : A ∈ᵢ ℓ) (hPℓ : P ∈ᵢ ℓ) (hAm : A ∈ᵢ m) (hPm : P ∈ᵢ m) : ℓ = m := by
   obtain ⟨l, _, huniq⟩ := hP1 hA_ne_P
   have hℓ : ℓ = l := huniq ℓ ⟨hAℓ, hPℓ⟩
   have hm : m = l := huniq m ⟨hAm, hPm⟩
@@ -92,12 +91,11 @@ lemma line_eq_of_point_eq
   · exact hℓ
   · exact hm.symm
 
-lemma points_distinct_of_noncollinear (hP1 : P1 (G := G)) {A B C PB PC : G.Point}
-    (hABC : noncollinear A B C) (hA_ne_PB : A ≠ PB) (hA_ne_PC : A ≠ PC)
+lemma points_distinct_of_noncollinear (hP1 : P1 (G := G)) {A B C P Q : G.Point}
+    (hABC : noncollinear A B C) (hA_ne_PB : A ≠ P) (hA_ne_P : A ≠ Q)
     {mB mC : G.Line}
-    (hAmB : G.incidence A mB) (hBmB : G.incidence B mB)
-    (hAmC : G.incidence A mC) (hCmC : G.incidence C mC)
-    (hPBmB : G.incidence PB mB) (hPCmC : G.incidence PC mC) : PB ≠ PC := by
+    (hAmB : A ∈ᵢ mB) (hBmB : B ∈ᵢ mB) (hAmC : A ∈ᵢ mC) (hCmC : C ∈ᵢ mC)
+    (hPBmB : P ∈ᵢ mB) (hPCmC : Q ∈ᵢ mC) : P ≠ Q := by
   rintro rfl
   have hm_eq : mB = mC := by apply line_eq_of_point_eq hP1 hA_ne_PB <;> assumption
   subst hm_eq
@@ -108,12 +106,12 @@ lemma three_points_on_line (ℓ : G.Line) (hP1 : P1 (G := G)) (hP2 : P2 (G := G)
     (hP3' : P3' (G := G)) :
     ∃ p q r : G.Point,
       p ≠ q ∧ p ≠ r ∧ q ≠ r ∧
-      G.incidence p ℓ ∧ G.incidence q ℓ ∧ G.incidence r ℓ := by
+      p ∈ᵢ ℓ ∧ q ∈ᵢ ℓ ∧ r ∈ᵢ ℓ := by
   rcases hP3' with
     ⟨A,B,C,D,
      hAB,hAC,hAD,hBC,hBD,hCD,
      hABC,hABD,hACD,hBCD⟩
-  wlog h_not_A : ¬ G.incidence A ℓ generalizing A B C D hABC hABD hACD hBCD
+  wlog h_not_A : ¬ A ∈ᵢ ℓ generalizing A B C D hABC hABD hACD hBCD
   · rcases (noncollinear_incidence ℓ hABC) with _ | _ | _
     · contradiction
     · have hBAD : noncollinear B A D := by simp [hABD]
@@ -136,19 +134,19 @@ lemma three_points_on_line (ℓ : G.Line) (hP1 : P1 (G := G)) (hP2 : P2 (G := G)
 
   use PB, PC, PD
 
-  have hA_ne_PB : A ≠ PB := by rintro rfl; contradiction
-  have hA_ne_PC : A ≠ PC := by rintro rfl; contradiction
-  have hA_ne_PD : A ≠ PD := by rintro rfl; contradiction
+  have : A ≠ PB := by rintro rfl; contradiction
+  have : A ≠ PC := by rintro rfl; contradiction
+  have : A ≠ PD := by rintro rfl; contradiction
 
   refine ⟨?_, ?_, ?_, hPBℓ, hPCℓ, hPDℓ⟩
   · show PB ≠ PC
-    apply points_distinct_of_noncollinear hP1 (PB:=PB) (PC:=PC) (mB:=mB) (mC:=mC) hABC
+    apply points_distinct_of_noncollinear hP1 (P:=PB) (Q:=PC) (mB:=mB) (mC:=mC) hABC
     <;> assumption
   · show PB ≠ PD
-    apply points_distinct_of_noncollinear hP1 (PB:=PB) (PC:=PD) (mB:=mB) (mC:=mD) hABD
+    apply points_distinct_of_noncollinear hP1 (P:=PB) (Q:=PD) (mB:=mB) (mC:=mD) hABD
     <;> assumption
   · show PC ≠ PD
-    apply points_distinct_of_noncollinear hP1 (PB:=PC) (PC:=PD) (mB:=mC) (mC:=mD) hACD
+    apply points_distinct_of_noncollinear hP1 (P:=PC) (Q:=PD) (mB:=mC) (mC:=mD) hACD
     <;> assumption
 
 
