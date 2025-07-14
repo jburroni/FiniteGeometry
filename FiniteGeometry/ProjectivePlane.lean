@@ -78,6 +78,14 @@ lemma noncollinear_incidence (ℓ : G.Line) :
   -- The following tauto is _classical_
   simp at h; tauto
 
+@[simp]
+lemma noncollinear₁₂ {A B C : G.Point} : noncollinear A B C ↔ noncollinear B A C := by
+  simp [noncollinear, triSet, collinear]
+  tauto
+
+lemma noncollinear₃₁₂ {A B C : G.Point} : noncollinear C A B ↔ noncollinear A B C := by
+  simp [noncollinear, triSet, collinear]
+  tauto
 
 def P3' : Prop :=
   ∃ A B C D : G.Point,
@@ -112,39 +120,12 @@ lemma three_points_on_line (ℓ : G.Line) (hP1 : P1 (G := G)) (hP2 : P2 (G := G)
   wlog h_not_A : ¬ G.incidence A ℓ generalizing A B C D hABC hABD hACD hBCD
   · rcases (noncollinear_incidence ℓ hABC) with _ | _ | _
     · contradiction
-    · have h_bad: noncollinear B A D := by
-        simp [noncollinear]
-        have : triSet B A D = triSet A B D := by
-          ext x; simp [triSet]; tauto
-        rw [this]
-        exact hABD
-      have h_BAC : noncollinear B A C := by
-        simp [noncollinear]
-        have : triSet B A C = triSet A B C := by
-          ext x; simp [triSet]; tauto
-        rw [this]
-        exact hABC
-
+    · have hBAD : noncollinear B A D := by simp [hABD]
+      have hBAC : noncollinear B A C := by simp [hABC]
       apply this B A C D hAB.symm <;> assumption
-    · have h_CAB : noncollinear C A B := by
-        simp [noncollinear]
-        have : triSet C A B = triSet A B C := by
-          ext x; simp [triSet]; tauto
-        rw [this]
-        exact hABC
-      have h_CAD : noncollinear C A D := by
-        simp [noncollinear]
-        have : triSet C A D = triSet A C D := by
-          ext x; simp [triSet]; tauto
-        rw [this]
-        exact hACD
-      have h_CBD : noncollinear C B D := by
-        simp [noncollinear]
-        have : triSet C B D = triSet B C D := by
-          ext x; simp [triSet]; tauto
-        rw [this]
-        exact hBCD
-
+    · have hCAB : noncollinear C A B := by simp only [noncollinear₃₁₂, hABC]
+      have hCAD : noncollinear C A D := by simp [hACD]
+      have hCBD : noncollinear C B D := by simp [hBCD]
       apply this C A B D hAC.symm hBC.symm <;> assumption
 
   obtain ⟨mB, ⟨hAmB, hBmB⟩, _⟩ := hP1 hAB
