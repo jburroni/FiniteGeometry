@@ -72,14 +72,10 @@ def noncollinear (a b c : G.Point) : Prop :=
   ¬ IncidenceGeometry.collinear (triSet a b c)
 
 lemma noncollinear_incidence (ℓ : G.Line) :
-  noncollinear A B C → ¬G.incidence A ℓ ∧ ¬G.incidence B ℓ ∧ ¬G.incidence C ℓ := by
-  intro h
-  -- sorry
-  -- push_neg at h
-  -- rcases h with (hA | hB | hC)
-  -- · exact ⟨hA, hB, hC⟩
-  -- · exact ⟨hB, hC, hA⟩
-  -- · exact ⟨hC, hA, hB⟩
+  noncollinear A B C → ¬G.incidence A ℓ ∨ ¬G.incidence B ℓ ∨ ¬G.incidence C ℓ := by
+  intro h; simp only [noncollinear, triSet, collinear, trace] at h
+  push_neg at h; specialize h ℓ
+  simp at h; tauto
 
 lemma noncollinear_perm (a b c : G.Point) :
   noncollinear a b c ↔ noncollinear b c a ∧ noncollinear c a b := by
@@ -138,8 +134,7 @@ lemma three_points_on_line (ℓ : G.Line) (hP1 : P1 (G := G)) (hP2 : P2 (G := G)
      hAB,hAC,hAD,hBC,hBD,hCD,
      hABC,hABD,hACD,hBCD⟩
   wlog h_not_A : ¬ G.incidence A ℓ
-  · suffices h: ¬ (G.incidence B ℓ ∧ G.incidence C ℓ) by
-      have : ¬G.incidence B ℓ ∨ ¬ G.incidence C ℓ := by
+  · suffices h: ¬G.incidence B ℓ ∨  ¬ G.incidence C ℓ by
       rcases h with (hB | hC)
       · have h_bad: noncollinear B A D := by
           simp [noncollinear]
@@ -175,12 +170,10 @@ lemma three_points_on_line (ℓ : G.Line) (hP1 : P1 (G := G)) (hP2 : P2 (G := G)
           exact hBCD
 
         exact this ℓ hP1 hP2 C A B D hAC.symm hBC.symm hCD hAB hAD hBD h_CAB h_CAD h_CBD hABD hC
-    unfold noncollinear collinear triSet trace at hABC
-    convert ¬(G.incidence B ℓ  ∧ G.incidence C ℓ)
+    rcases (noncollinear_incidence ℓ hABC) with (hA | hBC )
+    · contradiction
+    · exact hBC
 
-
-
-  have h_not_A : ¬ G.incidence A ℓ := sorry
   obtain ⟨mB, hmB, hmB1⟩ := hP1 hAB
   obtain ⟨mC, hmC, hmC1⟩ := hP1 hAC
   obtain ⟨mD, hmD, hmD1⟩ := hP1 hAD
