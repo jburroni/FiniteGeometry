@@ -75,24 +75,9 @@ lemma noncollinear_incidence (ℓ : G.Line) :
   noncollinear A B C → ¬G.incidence A ℓ ∨ ¬G.incidence B ℓ ∨ ¬G.incidence C ℓ := by
   intro h; simp only [noncollinear, triSet, collinear, trace] at h
   push_neg at h; specialize h ℓ
+  -- The following tauto is _classical_
   simp at h; tauto
 
-lemma noncollinear_perm (a b c : G.Point) :
-  noncollinear a b c ↔ noncollinear b c a ∧ noncollinear c a b := by
-  simp only [noncollinear, collinear, triSet]
-  constructor
-  · rintro h
-    constructor <;> intro h' <;> push_neg at h
-    <;> obtain ⟨ℓ, hℓ⟩ := h'
-    · specialize h ℓ; simp at *
-      exact h hℓ.2.2 hℓ.1 hℓ.2.1
-    · specialize h ℓ; simp at *
-      exact h hℓ.2.1 hℓ.2.2 hℓ.1
-  · rintro ⟨h1, h2⟩
-    simp; push_neg at h1
-    intro ℓ ha hb hc
-    specialize h1 ℓ; simp at h1
-    exact h1 hb hc ha
 
 def P3' : Prop :=
   ∃ A B C D : G.Point,
@@ -134,126 +119,107 @@ lemma three_points_on_line (ℓ : G.Line) (hP1 : P1 (G := G)) (hP2 : P2 (G := G)
      hAB,hAC,hAD,hBC,hBD,hCD,
      hABC,hABD,hACD,hBCD⟩
   wlog h_not_A : ¬ G.incidence A ℓ
-  · suffices h: ¬G.incidence B ℓ ∨  ¬ G.incidence C ℓ by
-      rcases h with (hB | hC)
-      · have h_bad: noncollinear B A D := by
-          simp [noncollinear]
-          have : triSet B A D = triSet A B D := by
-            ext x; simp [triSet]; tauto
-          rw [this]
-          exact hABD
-        have h_BAC : noncollinear B A C := by
-          simp [noncollinear]
-          have : triSet B A C = triSet A B C := by
-            ext x; simp [triSet]; tauto
-          rw [this]
-          exact hABC
-
-        apply this ℓ hP1 hP2 B A C D hAB.symm hBC hBD hAC hAD hCD h_BAC h_bad hBCD hACD hB
-      · have h_CAB : noncollinear C A B := by
-          simp [noncollinear]
-          have : triSet C A B = triSet A B C := by
-            ext x; simp [triSet]; tauto
-          rw [this]
-          exact hABC
-        have h_CAD : noncollinear C A D := by
-          simp [noncollinear]
-          have : triSet C A D = triSet A C D := by
-            ext x; simp [triSet]; tauto
-          rw [this]
-          exact hACD
-        have h_CBD : noncollinear C B D := by
-          simp [noncollinear]
-          have : triSet C B D = triSet B C D := by
-            ext x; simp [triSet]; tauto
-          rw [this]
-          exact hBCD
-
-        exact this ℓ hP1 hP2 C A B D hAC.symm hBC.symm hCD hAB hAD hBD h_CAB h_CAD h_CBD hABD hC
-    rcases (noncollinear_incidence ℓ hABC) with (hA | hBC )
+  · rcases (noncollinear_incidence ℓ hABC) with (hA | hB | hC)
     · contradiction
-    · exact hBC
+    · have h_bad: noncollinear B A D := by
+        simp [noncollinear]
+        have : triSet B A D = triSet A B D := by
+          ext x; simp [triSet]; tauto
+        rw [this]
+        exact hABD
+      have h_BAC : noncollinear B A C := by
+        simp [noncollinear]
+        have : triSet B A C = triSet A B C := by
+          ext x; simp [triSet]; tauto
+        rw [this]
+        exact hABC
 
-  obtain ⟨mB, hmB, hmB1⟩ := hP1 hAB
-  obtain ⟨mC, hmC, hmC1⟩ := hP1 hAC
-  obtain ⟨mD, hmD, hmD1⟩ := hP1 hAD
+      apply this ℓ hP1 hP2 B A C D hAB.symm hBC hBD hAC hAD hCD h_BAC h_bad hBCD hACD hB
+    · have h_CAB : noncollinear C A B := by
+        simp [noncollinear]
+        have : triSet C A B = triSet A B C := by
+          ext x; simp [triSet]; tauto
+        rw [this]
+        exact hABC
+      have h_CAD : noncollinear C A D := by
+        simp [noncollinear]
+        have : triSet C A D = triSet A C D := by
+          ext x; simp [triSet]; tauto
+        rw [this]
+        exact hACD
+      have h_CBD : noncollinear C B D := by
+        simp [noncollinear]
+        have : triSet C B D = triSet B C D := by
+          ext x; simp [triSet]; tauto
+        rw [this]
+        exact hBCD
+
+      exact this ℓ hP1 hP2 C A B D hAC.symm hBC.symm hCD hAB hAD hBD h_CAB h_CAD h_CBD hABD hC
+
+  obtain ⟨mB, ⟨hAmB, hBmB⟩, hmB1⟩ := hP1 hAB
+  obtain ⟨mC, ⟨hAmC, hCmC⟩, hmC1⟩ := hP1 hAC
+  obtain ⟨mD, ⟨hAmD, hDmD⟩, hmD1⟩ := hP1 hAD
   have : mB ≠ ℓ := by
-    intro h_eq
-    subst h_eq
-    exact h_not_A hmB.1
-  obtain ⟨PB, hPB, hPB1⟩ := hP2 this
+    intro h_eq; subst h_eq
+    exact h_not_A hAmB
+  obtain ⟨PB, ⟨hPBmB, hPBℓ⟩ , hPB1⟩ := hP2 this
   have : mC ≠ ℓ := by
-    intro h_eq
-    subst h_eq
-    exact h_not_A hmC.1
-  obtain ⟨PC, hPC, hPC1⟩ := hP2 this
+    intro h_eq; subst h_eq
+    exact h_not_A hAmC
+  obtain ⟨PC, ⟨hPCmC, hPCℓ⟩, hPC1⟩ := hP2 this
   have : mD ≠ ℓ := by
-    intro h_eq
-    subst h_eq
-    exact h_not_A hmD.1
-  obtain ⟨PD, hPD, hPD1⟩ := hP2 this
+    intro h_eq; subst h_eq
+    exact h_not_A hAmD
+  obtain ⟨PD, ⟨hPDmD, hPDℓ⟩, hPD1⟩ := hP2 this
   use PB, PC, PD
   simp [noncollinear, triSet, collinear] at *
   have hA_ne_PB : A ≠ PB := by
-    intro h
-    subst h
-    have : G.incidence A ℓ := hPB.2
-    exact (h_not_A this).elim
+    intro h; subst h
+    contradiction
 
   have hA_ne_PC : A ≠ PC := by
-    intro h
-    subst h
-    have : G.incidence A ℓ := hPC.2
-    exact (h_not_A this).elim
+    intro h; subst h
+    contradiction
 
   have hA_ne_PD : A ≠ PD := by
-    intro h
-    subst h
-    have : G.incidence A ℓ := hPD.2
-    exact (h_not_A this).elim
+    intro h; subst h
+    contradiction
 
   have hPB_PC : PB ≠ PC := by
     intro h_eq
     subst h_eq
-    have hPBmC : G.incidence PB mC := hPC.1
     obtain ⟨l, ⟨hAl, hPBl⟩, huniq⟩ := hP1 hA_ne_PB
-    have hmB_eq : mB = l := huniq mB ⟨hmB.1, hPB.1⟩
-    have hmC_eq : mC = l := huniq mC ⟨hmC.1, hPC.1⟩
-    have hC_on_mB : G.incidence C mB := by
-      have h: G.incidence C mC := hmC.2
+    have hmB_eq : mB = l := huniq mB ⟨hAmB, hPBmB⟩
+    have hmC_eq : mC = l := huniq mC ⟨hAmC, hPCmC⟩
+    have hCmB : G.incidence C mB := by
       subst hmC_eq; subst hmB_eq
-      exact h
+      exact hCmC
     exfalso
-    apply hABC mB hmB.1 hmB.2 hC_on_mB
+    exact hABC mB hAmB hBmB hCmB
 
   have hPB_PD : PB ≠ PD := by
-    intro h_eq
-    subst h_eq
-    have hPBmD : G.incidence PB mD := hPD.1
+    intro h_eq; subst h_eq
     obtain ⟨l, ⟨hAl, hPBl⟩, huniq⟩ := hP1 hA_ne_PB
-    have hmB_eq : mB = l := huniq mB ⟨hmB.1, hPB.1⟩
-    have hmC_eq : mD = l := huniq mD ⟨hmD.1, hPD.1⟩
-    have hD_on_mB : G.incidence D mB := by
-      have h: G.incidence D mD := hmD.2
+    have hmB_eq : mB = l := huniq mB ⟨hAmB, hPBmB⟩
+    have hmC_eq : mD = l := huniq mD ⟨hAmD, hPDmD⟩
+    have hDmb : G.incidence D mB := by
       subst hmC_eq; subst hmB_eq
-      exact h
+      exact hDmD
     exfalso
-    apply hABD mB hmB.1 hmB.2 hD_on_mB
+    apply hABD mB hAmB hBmB hDmb
 
   have hPC_PD : PC ≠ PD := by
     intro h_eq; subst h_eq
-    have hPCmD : G.incidence PC mD := hPD.1
     obtain ⟨l, ⟨hAl, hPCl⟩, huniq⟩ := hP1 hA_ne_PC
-    have hmB_eq : mC = l := huniq mC ⟨hmC.1, hPC.1⟩
-    have hmC_eq : mD = l := huniq mD ⟨hmD.1, hPD.1⟩
-    have hD_on_mC : G.incidence D mC := by
-      have h: G.incidence D mD := hmD.2
+    have hmB_eq : mC = l := huniq mC ⟨hAmC, hPCmC⟩
+    have hmC_eq : mD = l := huniq mD ⟨hAmD, hPDmD⟩
+    have hDmC : G.incidence D mC := by
       subst hmC_eq; subst hmB_eq
-      exact h
+      exact hDmD
     exfalso
-    apply hACD mC hmC.1 hmC.2 hD_on_mC
+    apply hACD mC hAmC hCmC hDmC
 
-  exact ⟨hPB_PC, hPB_PD, hPC_PD, hPB.2, hPC.2, hPD.2⟩
+  exact ⟨hPB_PC, hPB_PD, hPC_PD, hPBℓ, hPCℓ, hPDℓ⟩
 
 
 
