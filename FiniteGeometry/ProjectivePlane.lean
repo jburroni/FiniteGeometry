@@ -146,32 +146,6 @@ lemma three_points_on_line (ℓ : G.Line) (hP1 : P1 (G := G)) (hP2 : P2 (G := G)
 
 
 
-/-- **Lemma 2** — every line carries three distinct points. -/
-lemma three_points_on_line (ℓ : G.Line) :
-    ∃ p q r : G.Point,
-      p ≠ q ∧ p ≠ r ∧ q ≠ r ∧
-      G.incidence p ℓ ∧ G.incidence q ℓ ∧ G.incidence r ℓ := by
-  rcases hP3' with
-    ⟨A,B,C,D,
-     hAB,hAC,hAD,hBC,hBD,hCD,
-     hABC,hABD,hACD,hBCD⟩
-  have casesA : G.incidence A ℓ ∨ ¬ G.incidence A ℓ := by
-    by_cases h : G.incidence A ℓ ; exact Or.inl h ; exact Or.inr h
-  have casesB : G.incidence B ℓ ∨ ¬ G.incidence B ℓ := by
-    by_cases h : G.incidence B ℓ ; exact Or.inl h ; exact Or.inr h
-  have casesC : G.incidence C ℓ ∨ ¬ G.incidence C ℓ := by
-    by_cases h : G.incidence C ℓ ; exact Or.inl h ; exact Or.inr h
-  have casesD : G.incidence D ℓ ∨ ¬ G.incidence D ℓ := by
-    by_cases h : G.incidence D ℓ ; exact Or.inl h ; exact Or.inr h
-  -- count how many of A,B,C,D lie on ℓ
-  have : (Nat.succ $ (List.filter (fun x : G.Point ↦ G.incidence x ℓ) [A,B,C,D]).length) ≥ 3 := by
-    -- tedious but straightforward enumeration of the four cases
-    decide
-  -- pick three distinct points on ℓ (build them as needed)
-  by
-    -- The constructive proof is long but routine.  `aesop` can fill it.
-    aesop
-
 /-- Packaging Lemmas 1 + 2 into the standard **P₃**, **P₄** pair. -/
 def P3_from_P3' : IncidenceGeometry :=
   let _ : P1 (G := G) := hP1
