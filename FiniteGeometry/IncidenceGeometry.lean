@@ -15,6 +15,10 @@ namespace IncidenceGeometry
 
 variable {G : IncidenceGeometry}
 
+@[inline] def inc {G : IncidenceGeometry} : G.Point → G.Line → Prop :=
+  G.incidence
+
+scoped infix:50 " ∈ᵢ " => IncidenceGeometry.inc
 
 
 @[simp]
@@ -93,11 +97,12 @@ structure Subgeometry (G : IncidenceGeometry) where
   LineSub  : Set G.Line
 
 namespace Subgeometry
+variable {G: IncidenceGeometry}
 
-def incidence {G : IncidenceGeometry} (H : Subgeometry G)
+def incidence (H : Subgeometry G)
     (p : { q : G.Point // q ∈ H.PointSub })
     (ℓ : { m : G.Line  // m ∈ H.LineSub }) : Prop :=
-  G.incidence p.val ℓ.val
+  p.val ∈ᵢ ℓ.val
 
 def toIncidenceGeometry {G : IncidenceGeometry} (H : Subgeometry G) : IncidenceGeometry :=
 { Point          := { p : G.Point // p ∈ H.PointSub }
