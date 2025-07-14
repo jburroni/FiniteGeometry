@@ -81,7 +81,28 @@ open IncidenceGeometry ProjectivePrereqs AlternativeAxioms
 variable {G : IncidenceGeometry}
 variable (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G))
 
+lemma line_eq_of_point_eq
+    (hP1 : P1 (G := G)) {A P : G.Point} (hA_ne_P : A ≠ P) {ℓ m : G.Line}
+    (hAℓ : G.incidence A ℓ) (hPℓ : G.incidence P ℓ)
+    (hAm : G.incidence A m) (hPm : G.incidence P m) : ℓ = m := by
+  obtain ⟨l, _, huniq⟩ := hP1 hA_ne_P
+  have hℓ : ℓ = l := huniq ℓ ⟨hAℓ, hPℓ⟩
+  have hm : m = l := huniq m ⟨hAm, hPm⟩
+  trans l
+  · exact hℓ
+  · exact hm.symm
 
+lemma points_distinct_of_noncollinear (hP1 : P1 (G := G)) {A B C PB PC : G.Point}
+    (hABC : noncollinear A B C) (hA_ne_PB : A ≠ PB) (hA_ne_PC : A ≠ PC)
+    {mB mC : G.Line}
+    (hAmB : G.incidence A mB) (hBmB : G.incidence B mB)
+    (hAmC : G.incidence A mC) (hCmC : G.incidence C mC)
+    (hPBmB : G.incidence PB mB) (hPCmC : G.incidence PC mC) : PB ≠ PC := by
+  rintro rfl
+  have hm_eq : mB = mC := by apply line_eq_of_point_eq hP1 hA_ne_PB <;> assumption
+  subst hm_eq
+  simp [noncollinear, triSet, collinear] at hABC
+  apply hABC mB <;> assumption
 
 lemma three_points_on_line (ℓ : G.Line) (hP1 : P1 (G := G)) (hP2 : P2 (G := G))
     (hP3' : P3' (G := G)) :
@@ -112,37 +133,23 @@ lemma three_points_on_line (ℓ : G.Line) (hP1 : P1 (G := G)) (hP2 : P2 (G := G)
   obtain ⟨PC, ⟨hPCmC, hPCℓ⟩, _⟩ := hP2 this
   have : mD ≠ ℓ := by rintro rfl; contradiction
   obtain ⟨PD, ⟨hPDmD, hPDℓ⟩, _⟩ := hP2 this
+
   use PB, PC, PD
-  simp [noncollinear, triSet, collinear] at *
 
   have hA_ne_PB : A ≠ PB := by rintro rfl; contradiction
   have hA_ne_PC : A ≠ PC := by rintro rfl; contradiction
+  have hA_ne_PD : A ≠ PD := by rintro rfl; contradiction
 
-  have hPB_PC : PB ≠ PC := by
-    rintro rfl
-    obtain ⟨l, ⟨hAl, hPBl⟩, huniq⟩ := hP1 hA_ne_PB
-    have hmB_eq : mB = l := huniq mB ⟨hAmB, hPBmB⟩
-    have hmC_eq : mC = l := huniq mC ⟨hAmC, hPCmC⟩
-    subst hmC_eq; subst hmB_eq
-    exact hABC mB hAmB hBmB hCmC
-
-  have hPB_PD : PB ≠ PD := by
-    rintro rfl
-    obtain ⟨l, ⟨hAl, hPBl⟩, huniq⟩ := hP1 hA_ne_PB
-    have hmB_eq : mB = l := huniq mB ⟨hAmB, hPBmB⟩
-    have hmC_eq : mD = l := huniq mD ⟨hAmD, hPDmD⟩
-    subst hmC_eq; subst hmB_eq
-    exact hABD mB hAmB hBmB hDmD
-
-  have hPC_PD : PC ≠ PD := by
-    rintro rfl
-    obtain ⟨l, ⟨hAl, hPCl⟩, huniq⟩ := hP1 hA_ne_PC
-    have hmB_eq : mC = l := huniq mC ⟨hAmC, hPCmC⟩
-    have hmC_eq : mD = l := huniq mD ⟨hAmD, hPDmD⟩
-    subst hmC_eq; subst hmB_eq
-    exact hACD mC hAmC hCmC hDmD
-
-  exact ⟨hPB_PC, hPB_PD, hPC_PD, hPBℓ, hPCℓ, hPDℓ⟩
+  refine ⟨?_, ?_, ?_, hPBℓ, hPCℓ, hPDℓ⟩
+  · show PB ≠ PC
+    apply points_distinct_of_noncollinear hP1 (PB:=PB) (PC:=PC) (mB:=mB) (mC:=mC) hABC
+    <;> assumption
+  · show PB ≠ PD
+    apply points_distinct_of_noncollinear hP1 (PB:=PB) (PC:=PD) (mB:=mB) (mC:=mD) hABD
+    <;> assumption
+  · show PC ≠ PD
+    apply points_distinct_of_noncollinear hP1 (PB:=PC) (PC:=PD) (mB:=mC) (mC:=mD) hACD
+    <;> assumption
 
 
 
