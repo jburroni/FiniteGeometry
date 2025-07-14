@@ -98,15 +98,6 @@ open IncidenceGeometry ProjectivePrereqs AlternativeAxioms
 variable {G : IncidenceGeometry}
 variable (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G))
 
-lemma line_unique
-    (hP1 : P1 (G := G))
-    {p q : G.Point} (hpq : p ≠ q) {ℓ₁ ℓ₂ : G.Line}
-    (hp₁ : G.incidence p ℓ₁) (hq₁ : G.incidence q ℓ₁)
-    (hp₂ : G.incidence p ℓ₂) (hq₂ : G.incidence q ℓ₂) : ℓ₁ = ℓ₂ := by
-  rcases hP1 hpq with ⟨ℓ₀, hinc₀, huniq₀⟩
-  have h₁ : ℓ₁ = ℓ₀ := huniq₀ ℓ₁ ⟨hp₁, hq₁⟩
-  have h₂ : ℓ₂ = ℓ₀ := huniq₀ ℓ₂ ⟨hp₂, hq₂⟩
-  cc
 
 
 lemma three_points_on_line (ℓ : G.Line) (hP1 : P1 (G := G)) (hP2 : P2 (G := G))
@@ -118,8 +109,8 @@ lemma three_points_on_line (ℓ : G.Line) (hP1 : P1 (G := G)) (hP2 : P2 (G := G)
     ⟨A,B,C,D,
      hAB,hAC,hAD,hBC,hBD,hCD,
      hABC,hABD,hACD,hBCD⟩
-  wlog h_not_A : ¬ G.incidence A ℓ
-  · rcases (noncollinear_incidence ℓ hABC) with (hA | hB | hC)
+  wlog h_not_A : ¬ G.incidence A ℓ generalizing A B C D hABC hABD hACD hBCD
+  · rcases (noncollinear_incidence ℓ hABC) with _ | _ | _
     · contradiction
     · have h_bad: noncollinear B A D := by
         simp [noncollinear]
@@ -134,7 +125,7 @@ lemma three_points_on_line (ℓ : G.Line) (hP1 : P1 (G := G)) (hP2 : P2 (G := G)
         rw [this]
         exact hABC
 
-      apply this ℓ hP1 hP2 B A C D hAB.symm hBC hBD hAC hAD hCD h_BAC h_bad hBCD hACD hB
+      apply this B A C D hAB.symm <;> assumption
     · have h_CAB : noncollinear C A B := by
         simp [noncollinear]
         have : triSet C A B = triSet A B C := by
@@ -154,70 +145,46 @@ lemma three_points_on_line (ℓ : G.Line) (hP1 : P1 (G := G)) (hP2 : P2 (G := G)
         rw [this]
         exact hBCD
 
-      exact this ℓ hP1 hP2 C A B D hAC.symm hBC.symm hCD hAB hAD hBD h_CAB h_CAD h_CBD hABD hC
+      apply this C A B D hAC.symm hBC.symm <;> assumption
 
-  obtain ⟨mB, ⟨hAmB, hBmB⟩, hmB1⟩ := hP1 hAB
-  obtain ⟨mC, ⟨hAmC, hCmC⟩, hmC1⟩ := hP1 hAC
-  obtain ⟨mD, ⟨hAmD, hDmD⟩, hmD1⟩ := hP1 hAD
-  have : mB ≠ ℓ := by
-    intro h_eq; subst h_eq
-    exact h_not_A hAmB
-  obtain ⟨PB, ⟨hPBmB, hPBℓ⟩ , hPB1⟩ := hP2 this
-  have : mC ≠ ℓ := by
-    intro h_eq; subst h_eq
-    exact h_not_A hAmC
-  obtain ⟨PC, ⟨hPCmC, hPCℓ⟩, hPC1⟩ := hP2 this
-  have : mD ≠ ℓ := by
-    intro h_eq; subst h_eq
-    exact h_not_A hAmD
-  obtain ⟨PD, ⟨hPDmD, hPDℓ⟩, hPD1⟩ := hP2 this
+  obtain ⟨mB, ⟨hAmB, hBmB⟩, _⟩ := hP1 hAB
+  obtain ⟨mC, ⟨hAmC, hCmC⟩, _⟩ := hP1 hAC
+  obtain ⟨mD, ⟨hAmD, hDmD⟩, _⟩ := hP1 hAD
+  have : mB ≠ ℓ := by rintro rfl; contradiction
+  obtain ⟨PB, ⟨hPBmB, hPBℓ⟩ , _⟩ := hP2 this
+  have : mC ≠ ℓ := by rintro rfl; contradiction
+  obtain ⟨PC, ⟨hPCmC, hPCℓ⟩, _⟩ := hP2 this
+  have : mD ≠ ℓ := by rintro rfl; contradiction
+  obtain ⟨PD, ⟨hPDmD, hPDℓ⟩, _⟩ := hP2 this
   use PB, PC, PD
   simp [noncollinear, triSet, collinear] at *
-  have hA_ne_PB : A ≠ PB := by
-    intro h; subst h
-    contradiction
 
-  have hA_ne_PC : A ≠ PC := by
-    intro h; subst h
-    contradiction
-
-  have hA_ne_PD : A ≠ PD := by
-    intro h; subst h
-    contradiction
+  have hA_ne_PB : A ≠ PB := by rintro rfl; contradiction
+  have hA_ne_PC : A ≠ PC := by rintro rfl; contradiction
 
   have hPB_PC : PB ≠ PC := by
-    intro h_eq
-    subst h_eq
+    rintro rfl
     obtain ⟨l, ⟨hAl, hPBl⟩, huniq⟩ := hP1 hA_ne_PB
     have hmB_eq : mB = l := huniq mB ⟨hAmB, hPBmB⟩
     have hmC_eq : mC = l := huniq mC ⟨hAmC, hPCmC⟩
-    have hCmB : G.incidence C mB := by
-      subst hmC_eq; subst hmB_eq
-      exact hCmC
-    exfalso
-    exact hABC mB hAmB hBmB hCmB
+    subst hmC_eq; subst hmB_eq
+    exact hABC mB hAmB hBmB hCmC
 
   have hPB_PD : PB ≠ PD := by
-    intro h_eq; subst h_eq
+    rintro rfl
     obtain ⟨l, ⟨hAl, hPBl⟩, huniq⟩ := hP1 hA_ne_PB
     have hmB_eq : mB = l := huniq mB ⟨hAmB, hPBmB⟩
     have hmC_eq : mD = l := huniq mD ⟨hAmD, hPDmD⟩
-    have hDmb : G.incidence D mB := by
-      subst hmC_eq; subst hmB_eq
-      exact hDmD
-    exfalso
-    apply hABD mB hAmB hBmB hDmb
+    subst hmC_eq; subst hmB_eq
+    exact hABD mB hAmB hBmB hDmD
 
   have hPC_PD : PC ≠ PD := by
-    intro h_eq; subst h_eq
+    rintro rfl
     obtain ⟨l, ⟨hAl, hPCl⟩, huniq⟩ := hP1 hA_ne_PC
     have hmB_eq : mC = l := huniq mC ⟨hAmC, hPCmC⟩
     have hmC_eq : mD = l := huniq mD ⟨hAmD, hPDmD⟩
-    have hDmC : G.incidence D mC := by
-      subst hmC_eq; subst hmB_eq
-      exact hDmD
-    exfalso
-    apply hACD mC hAmC hCmC hDmC
+    subst hmC_eq; subst hmB_eq
+    exact hACD mC hAmC hCmC hDmD
 
   exact ⟨hPB_PC, hPB_PD, hPC_PD, hPBℓ, hPCℓ, hPDℓ⟩
 
