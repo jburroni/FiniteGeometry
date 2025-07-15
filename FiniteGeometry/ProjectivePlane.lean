@@ -149,6 +149,11 @@ lemma three_points_on_line (ℓ : G.Line) (hP1 : P1 (G := G)) (hP2 : P2 (G := G)
     apply points_distinct_of_noncollinear hP1 (P:=PC) (Q:=PD) (mB:=mC) (mC:=mD) hACD
     <;> assumption
 
+lemma three_lines_through_point (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G))
+    (p : (G.dual).Point) :
+    ∃ ℓ m n : (G.dual).Line, ℓ ≠ m ∧ ℓ ≠ n ∧ m ≠ n ∧ p ∈ᵢ ℓ ∧ p ∈ᵢ m ∧ p ∈ᵢ n :=
+  three_points_on_line (G := G) p hP1 hP2 hP3'
+
 
 
 /-- Packaging Lemmas 1 + 2 into the standard **P₃**, **P₄** pair. -/
@@ -156,7 +161,7 @@ def P3_from_P3' : IncidenceGeometry :=
   let _ : P1 (G := G) := hP1
   let _ : P2 (G := G) := hP2
   have h₁ := three_lines_through_point hP1 hP2 hP3'
-  have h₂ := three_points_on_line    hP1 hP2 hP3'
+  have h₂ := three_points_on_line hP1 hP2 hP3'
   { Point     := G.Point,
     Line      := G.Line,
     incidence := G.incidence }
@@ -171,9 +176,6 @@ theorem lemma_1_2_5 (G : IncidenceGeometry) :
   constructor
   · intro h
     refine ⟨⟨h.P1, h.P2⟩, ?_⟩
-    -- A genuine projective plane obviously has four non-collinear points:
-    -- take any p, grab three distinct lines through it (P₄), sample one
-    -- extra point on each (P₃), and check the combinations.  Routine.
     have : P3' (G := G) := by
       -- 15 lines of elementary geometry, omitted here but can be
       -- re-created by the same `aesop` used above.
