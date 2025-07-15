@@ -91,6 +91,13 @@ lemma line_eq_of_point_eq
   · exact hℓ
   · exact hm.symm
 
+lemma point_eq_of_incident
+    (hP2 : P2 (G := G)) {ℓ m : G.Line} (hℓm : ℓ ≠ m)
+    {P Q : G.Point} (hPℓ : P ∈ᵢ ℓ) (hPm : P ∈ᵢ m)
+    (hQℓ : Q ∈ᵢ ℓ) (hQm : Q ∈ᵢ m) : P = Q :=
+  line_eq_of_point_eq (G := G.dual) (hP1 := hP2) (A := ℓ) (P := m) (ℓ := P) (m := Q)
+    hℓm hPℓ hPm hQℓ hQm
+
 lemma points_distinct_of_noncollinear (hP1 : P1 (G := G)) {A B C P Q : G.Point}
     (hABC : noncollinear A B C) (hA_ne_PB : A ≠ P) (hA_ne_P : A ≠ Q)
     {mB mC : G.Line}
@@ -102,8 +109,8 @@ lemma points_distinct_of_noncollinear (hP1 : P1 (G := G)) {A B C P Q : G.Point}
   simp [noncollinear, triSet, collinear] at hABC
   apply hABC mB <;> assumption
 
-lemma three_points_on_line (ℓ : G.Line) (hP1 : P1 (G := G)) (hP2 : P2 (G := G))
-    (hP3' : P3' (G := G)) :
+lemma three_points_on_line (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G))
+    (ℓ : G.Line):
     ∃ p q r : G.Point,
       p ≠ q ∧ p ≠ r ∧ q ≠ r ∧
       p ∈ᵢ ℓ ∧ q ∈ᵢ ℓ ∧ r ∈ᵢ ℓ := by
@@ -149,10 +156,75 @@ lemma three_points_on_line (ℓ : G.Line) (hP1 : P1 (G := G)) (hP2 : P2 (G := G)
     apply points_distinct_of_noncollinear hP1 (P:=PC) (Q:=PD) (mB:=mC) (mC:=mD) hACD
     <;> assumption
 
+lemma P3'_dual_of_P3'
+    (hP1  : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G)) : P3' (G := G.dual) := by
+  rcases hP3' with
+    ⟨A, B, C, D,
+     hAB, hAC, hAD, hBC, hBD, hCD,
+     hABC, hABD, hACD, hBCD⟩
+
+  obtain ⟨ℓAB, hAℓAB, hBℓAB⟩ := hP1 hAB
+  obtain ⟨ℓAC, hAℓAC, hCℓAC⟩ := hP1 hAC
+  obtain ⟨ℓBD, hBℓBD, hDℓBD⟩ := hP1 hBD
+  obtain ⟨ℓCD, hCℓCD, hDℓCD⟩ := hP1 hCD
+
+  have ℓAB_ne_ℓAC : ℓAB ≠ ℓAC := by sorry
+  have ℓAB_ne_ℓBD : ℓAB ≠ ℓBD := by sorry
+  have ℓAB_ne_ℓCD : ℓAB ≠ ℓCD := by sorry
+  have ℓBD_ne_ℓCD : ℓBD ≠ ℓCD := by sorry
+
+  have ℓAB_ne_ℓBD : ℓAB ≠ ℓBD := sorry
+  have ℓAC_ne_ℓBD : ℓAC ≠ ℓBD := sorry
+  have ℓAC_ne_ℓCD : ℓAC ≠ ℓCD := sorry
+
+  refine
+    ⟨ℓAB, ℓAC, ℓBD, ℓCD,
+     ℓAB_ne_ℓAC, ℓAB_ne_ℓBD, ℓAB_ne_ℓCD,
+     ℓAC_ne_ℓBD, ℓAC_ne_ℓCD, ℓBD_ne_ℓCD,
+     ?nclℓABℓACℓBD, ?nclℓABℓACℓCD,
+     ?nclℓABℓBDℓCD, ?nclℓACℓBDℓCD⟩
+
+  · suffices h_no_common : ¬ ∃ P : G.Point, P ∈ᵢ ℓAB ∧ P ∈ᵢ ℓAC ∧ P ∈ᵢ ℓBD by
+      simpa [noncollinear, collinear, triSet] using h_no_common
+    intro ⟨P, hPAB, hPAC, hPBD⟩
+    apply hAB
+    have hPA : P = A := point_eq_of_incident hP2 ℓAB_ne_ℓAC hPAB hPAC hAℓAB.1 hAℓAC.1
+    have hPB : P = B := point_eq_of_incident hP2 ℓAB_ne_ℓBD hPAB hPBD hAℓAB.2 hBℓBD.1
+    show A = B
+    trans P <;> (first | exact hPA.symm | exact hPB)
+
+  · suffices h_no_common : ¬ ∃ P : G.Point, P ∈ᵢ ℓAB ∧ P ∈ᵢ ℓAC ∧ P ∈ᵢ ℓCD by
+      simpa [noncollinear, collinear, triSet] using h_no_common
+    intro ⟨P, hPAB, hPAC, hPCD⟩
+    apply hAC
+    have hPA : P = A := point_eq_of_incident hP2 ℓAB_ne_ℓAC hPAB hPAC hAℓAB.1 hAℓAC.1
+    have hPB : P = C := point_eq_of_incident hP2 ℓAC_ne_ℓCD hPAC hPCD hAℓAC.2 hCℓCD.1
+    show A = C
+    trans P <;> (first | exact hPA.symm | exact hPB)
+
+  · suffices h_no_common : ¬ ∃ P : G.Point, P ∈ᵢ ℓAB ∧ P ∈ᵢ ℓBD ∧ P ∈ᵢ ℓCD by
+      simpa [noncollinear, collinear, triSet] using h_no_common
+    intro ⟨P, hPAB, hPBD, hPCD⟩
+    apply hBD
+    have hPA : P = B := point_eq_of_incident hP2 ℓAB_ne_ℓBD hPAB hPBD hAℓAB.2 hBℓBD.1
+    have hPB : P = D := point_eq_of_incident hP2 ℓBD_ne_ℓCD hPBD hPCD hBℓBD.2 hCℓCD.2
+    show B = D
+    trans P <;> (first | exact hPA.symm | exact hPB)
+
+  · suffices h_no_common : ¬ ∃ P : G.Point, P ∈ᵢ ℓAC ∧ P ∈ᵢ ℓBD ∧ P ∈ᵢ ℓCD by
+      simpa [noncollinear, collinear, triSet] using h_no_common
+    intro ⟨P, hPAC, hPBD, hPCD⟩
+    apply hCD
+    have hPA : P = C := point_eq_of_incident hP2 ℓAC_ne_ℓCD hPAC hPCD hAℓAC.2 hCℓCD.1
+    have hPB : P = D := point_eq_of_incident hP2 ℓBD_ne_ℓCD hPBD hPCD hBℓBD.2 hCℓCD.2
+    show C = D
+    trans P <;> (first | exact hPA.symm | exact hPB)
+
+
 lemma three_lines_through_point (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G))
     (p : (G.dual).Point) :
     ∃ ℓ m n : (G.dual).Line, ℓ ≠ m ∧ ℓ ≠ n ∧ m ≠ n ∧ p ∈ᵢ ℓ ∧ p ∈ᵢ m ∧ p ∈ᵢ n :=
-  three_points_on_line (G := G) p hP1 hP2 hP3'
+  three_points_on_line (G := G.dual) hP2 hP1 (P3'_dual_of_P3' hP1 hP2 hP3') p
 
 
 
@@ -176,19 +248,16 @@ theorem lemma_1_2_5 (G : IncidenceGeometry) :
   constructor
   · intro h
     refine ⟨⟨h.P1, h.P2⟩, ?_⟩
-    have : P3' (G := G) := by
-      -- 15 lines of elementary geometry, omitted here but can be
-      -- re-created by the same `aesop` used above.
-      aesop
+    have : P3' (G := G) := by sorry
     exact Or.inl this
   · rintro ⟨⟨hP1, hP2⟩, hAlt⟩
     cases hAlt with
     | inl hP3' =>
-        let hP3 := (FromP3'.three_points_on_line  hP1 hP2 hP3')
-        let hP4 := (FromP3'.three_lines_through_point hP1 hP2 hP3')
+        let hP3 := FromP3'.three_points_on_line  hP1 ℓBD_ne_ℓCD hP3'
+        let hP4 := (FromP3'.three_lines_through_point hP1 ℓBD_ne_ℓCD hP3')
         exact
         { P1 := hP1,
-          P2 := hP2,
+          P2 := ℓBD_ne_ℓCD,
           P3 := hP3,
           P4 := hP4 }
     | inr hP3'' =>
@@ -204,7 +273,7 @@ theorem lemma_1_2_5 (G : IncidenceGeometry) :
           aesop
         exact
         { P1 := hP1,
-          P2 := hP2,
+          P2 := ℓBD_ne_ℓCD,
           P3 := hP3,
           P4 := hP4 }
 
