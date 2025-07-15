@@ -109,6 +109,18 @@ lemma points_distinct_of_noncollinear (hP1 : P1 (G := G)) {A B C P Q : G.Point}
   simp [noncollinear, triSet, collinear] at hABC
   apply hABC mB <;> assumption
 
+lemma nonconcurrent_chain (hP2 : P2 (G := G)) (hBD : B ≠ D) (ℓAB_ne_ℓBD : ℓAB ≠ ℓBD)
+    (ℓBD_ne_ℓCD : ℓBD ≠ ℓCD) (hBℓAB : B ∈ᵢ ℓAB) (hBℓBD : B ∈ᵢ ℓBD) (hDℓCD : D ∈ᵢ ℓCD)
+    (hDℓBD : D ∈ᵢ ℓBD) : noncollinear (G:= G.dual) ℓAB ℓBD ℓCD := by
+  suffices h_no_common : ¬ ∃ P : G.Point, P ∈ᵢ ℓAB ∧ P ∈ᵢ ℓBD ∧ P ∈ᵢ ℓCD by
+    simpa [noncollinear, collinear, triSet] using h_no_common
+  intro ⟨P, hPAB, hPBD, hPCD⟩
+  apply hBD
+  have hPA : P = B := point_eq_of_incident hP2 ℓAB_ne_ℓBD hPAB hPBD hBℓAB hBℓBD
+  have hPB : P = D := point_eq_of_incident hP2 ℓBD_ne_ℓCD hPBD hPCD hDℓBD hDℓCD
+  show B = D
+  trans P <;> (first | exact hPA.symm | exact hPB)
+
 lemma three_points_on_line (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G))
     (ℓ : G.Line):
     ∃ p q r : G.Point,
@@ -184,41 +196,14 @@ lemma P3'_dual_of_P3'
      ?nclℓABℓACℓBD, ?nclℓABℓACℓCD,
      ?nclℓABℓBDℓCD, ?nclℓACℓBDℓCD⟩
 
-  · suffices h_no_common : ¬ ∃ P : G.Point, P ∈ᵢ ℓAB ∧ P ∈ᵢ ℓAC ∧ P ∈ᵢ ℓBD by
-      simpa [noncollinear, collinear, triSet] using h_no_common
-    intro ⟨P, hPAB, hPAC, hPBD⟩
-    apply hAB
-    have hPA : P = A := point_eq_of_incident hP2 ℓAB_ne_ℓAC hPAB hPAC hAℓAB.1 hAℓAC.1
-    have hPB : P = B := point_eq_of_incident hP2 ℓAB_ne_ℓBD hPAB hPBD hAℓAB.2 hBℓBD.1
-    show A = B
-    trans P <;> (first | exact hPA.symm | exact hPB)
-
-  · suffices h_no_common : ¬ ∃ P : G.Point, P ∈ᵢ ℓAB ∧ P ∈ᵢ ℓAC ∧ P ∈ᵢ ℓCD by
-      simpa [noncollinear, collinear, triSet] using h_no_common
-    intro ⟨P, hPAB, hPAC, hPCD⟩
-    apply hAC
-    have hPA : P = A := point_eq_of_incident hP2 ℓAB_ne_ℓAC hPAB hPAC hAℓAB.1 hAℓAC.1
-    have hPB : P = C := point_eq_of_incident hP2 ℓAC_ne_ℓCD hPAC hPCD hAℓAC.2 hCℓCD.1
-    show A = C
-    trans P <;> (first | exact hPA.symm | exact hPB)
-
-  · suffices h_no_common : ¬ ∃ P : G.Point, P ∈ᵢ ℓAB ∧ P ∈ᵢ ℓBD ∧ P ∈ᵢ ℓCD by
-      simpa [noncollinear, collinear, triSet] using h_no_common
-    intro ⟨P, hPAB, hPBD, hPCD⟩
-    apply hBD
-    have hPA : P = B := point_eq_of_incident hP2 ℓAB_ne_ℓBD hPAB hPBD hAℓAB.2 hBℓBD.1
-    have hPB : P = D := point_eq_of_incident hP2 ℓBD_ne_ℓCD hPBD hPCD hBℓBD.2 hCℓCD.2
-    show B = D
-    trans P <;> (first | exact hPA.symm | exact hPB)
-
-  · suffices h_no_common : ¬ ∃ P : G.Point, P ∈ᵢ ℓAC ∧ P ∈ᵢ ℓBD ∧ P ∈ᵢ ℓCD by
-      simpa [noncollinear, collinear, triSet] using h_no_common
-    intro ⟨P, hPAC, hPBD, hPCD⟩
-    apply hCD
-    have hPA : P = C := point_eq_of_incident hP2 ℓAC_ne_ℓCD hPAC hPCD hAℓAC.2 hCℓCD.1
-    have hPB : P = D := point_eq_of_incident hP2 ℓBD_ne_ℓCD hPBD hPCD hBℓBD.2 hCℓCD.2
-    show C = D
-    trans P <;> (first | exact hPA.symm | exact hPB)
+  · suffices noncollinear ℓAC ℓAB ℓBD by
+      simpa [noncollinear, triSet, collinear] using this
+    exact nonconcurrent_chain hP2 hAB ℓAB_ne_ℓAC.symm ℓAB_ne_ℓBD hAℓAC.1 hAℓAB.1 hBℓBD.1 hAℓAB.2
+  · exact nonconcurrent_chain hP2 hAC ℓAB_ne_ℓAC ℓAC_ne_ℓCD hAℓAB.1 hAℓAC.1 hCℓCD.1 hAℓAC.2
+  · exact nonconcurrent_chain hP2 hBD ℓAB_ne_ℓBD ℓBD_ne_ℓCD hAℓAB.2 hBℓBD.1 hCℓCD.2 hBℓBD.2
+  · suffices noncollinear ℓAC ℓCD ℓBD  by
+      simpa [noncollinear, collinear, triSet] using this
+    exact nonconcurrent_chain hP2 hCD ℓAC_ne_ℓCD ℓBD_ne_ℓCD.symm hAℓAC.2 hCℓCD.1 hBℓBD.2 hCℓCD.2
 
 
 lemma three_lines_through_point (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G))
