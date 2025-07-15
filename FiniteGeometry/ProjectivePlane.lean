@@ -58,6 +58,10 @@ lemma noncollinear₁₂ {A B C : G.Point} : noncollinear A B C ↔ noncollinear
   simp [noncollinear, triSet, collinear]
   tauto
 
+lemma noncollinear₂₃ {A B C : G.Point} : noncollinear A B C ↔ noncollinear A C B := by
+  simp [noncollinear, triSet, collinear]
+  tauto
+
 lemma noncollinear₃₁₂ {A B C : G.Point} : noncollinear C A B ↔ noncollinear A B C := by
   simp [noncollinear, triSet, collinear]
   tauto
@@ -109,17 +113,22 @@ lemma points_distinct_of_noncollinear (hP1 : P1 (G := G)) {A B C P Q : G.Point}
   simp [noncollinear, triSet, collinear] at hABC
   apply hABC mB <;> assumption
 
-lemma nonconcurrent_chain (hP2 : P2 (G := G)) (hBD : B ≠ D) (ℓAB_ne_ℓBD : ℓAB ≠ ℓBD)
-    (ℓBD_ne_ℓCD : ℓBD ≠ ℓCD) (hBℓAB : B ∈ᵢ ℓAB) (hBℓBD : B ∈ᵢ ℓBD) (hDℓCD : D ∈ᵢ ℓCD)
-    (hDℓBD : D ∈ᵢ ℓBD) : noncollinear (G:= G.dual) ℓAB ℓBD ℓCD := by
-  suffices h_no_common : ¬ ∃ P : G.Point, P ∈ᵢ ℓAB ∧ P ∈ᵢ ℓBD ∧ P ∈ᵢ ℓCD by
+lemma line_ne_of_noncollinear {A B C : G.Point} {ℓ₁ ℓ₂ : G.Line}
+    (hABC  : noncollinear A B C) (hAℓ₁  : A ∈ᵢ ℓ₁) (hBℓ₁ : B ∈ᵢ ℓ₁) (hCℓ₂ : C ∈ᵢ ℓ₂) : ℓ₁ ≠ ℓ₂ := by
+  rintro rfl
+  apply hABC; use ℓ₁; simp [collinear, triSet]
+  exact ⟨hAℓ₁, hBℓ₁, hCℓ₂⟩
+
+lemma nonconcurrent_chain (hP2 : P2 (G := G)) (hPQ : P ≠ Q) (h₁ : l ≠ m) (h₂ : m ≠ n)
+    (h₃ : P ∈ᵢ l) (h₄ : P ∈ᵢ m) (h₅ : Q ∈ᵢ n) (h₆ : Q ∈ᵢ m) : noncollinear (G:= G.dual) l m n := by
+  suffices h_no_common : ¬ ∃ A : G.Point, A ∈ᵢ l ∧ A ∈ᵢ m ∧ A ∈ᵢ n by
     simpa [noncollinear, collinear, triSet] using h_no_common
-  intro ⟨P, hPAB, hPBD, hPCD⟩
-  apply hBD
-  have hPA : P = B := point_eq_of_incident hP2 ℓAB_ne_ℓBD hPAB hPBD hBℓAB hBℓBD
-  have hPB : P = D := point_eq_of_incident hP2 ℓBD_ne_ℓCD hPBD hPCD hDℓBD hDℓCD
-  show B = D
-  trans P <;> (first | exact hPA.symm | exact hPB)
+  intro ⟨A', _, _, _⟩
+  apply hPQ
+  calc P
+    _ = A' := by symm; apply point_eq_of_incident (ℓ:= l) (m:=m) (P:=A') (Q:=P) <;> assumption
+    _ = Q := by apply point_eq_of_incident (ℓ:= m) (m:=n) (P:=A') (Q:=Q) <;> assumption
+
 
 lemma three_points_on_line (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G))
     (ℓ : G.Line):
@@ -180,14 +189,17 @@ lemma P3'_dual_of_P3'
   obtain ⟨ℓBD, hBℓBD, hDℓBD⟩ := hP1 hBD
   obtain ⟨ℓCD, hCℓCD, hDℓCD⟩ := hP1 hCD
 
-  have ℓAB_ne_ℓAC : ℓAB ≠ ℓAC := by sorry
-  have ℓAB_ne_ℓBD : ℓAB ≠ ℓBD := by sorry
-  have ℓAB_ne_ℓCD : ℓAB ≠ ℓCD := by sorry
-  have ℓBD_ne_ℓCD : ℓBD ≠ ℓCD := by sorry
+  have hCDB : (noncollinear C D B) := noncollinear₃₁₂.mp hBCD
+  have hBDA : (noncollinear B D A) := noncollinear₃₁₂.mp hABD
 
-  have ℓAB_ne_ℓBD : ℓAB ≠ ℓBD := sorry
-  have ℓAC_ne_ℓBD : ℓAC ≠ ℓBD := sorry
-  have ℓAC_ne_ℓCD : ℓAC ≠ ℓCD := sorry
+  have ℓAB_ne_ℓAC : ℓAB ≠ ℓAC := by apply line_ne_of_noncollinear hABC hAℓAB.1 hAℓAB.2 hAℓAC.2
+  have ℓAB_ne_ℓBD : ℓAB ≠ ℓBD := by apply line_ne_of_noncollinear hABD hAℓAB.1 hAℓAB.2 hBℓBD.2
+  have ℓAB_ne_ℓCD : ℓAB ≠ ℓCD := by apply line_ne_of_noncollinear hABD hAℓAB.1 hAℓAB.2 hCℓCD.2
+  have ℓBD_ne_ℓCD : ℓBD ≠ ℓCD := by symm; apply line_ne_of_noncollinear hCDB hCℓCD.1 hCℓCD.2 hBℓBD.1
+
+  have ℓAB_ne_ℓBD : ℓAB ≠ ℓBD := by apply line_ne_of_noncollinear hABD hAℓAB.1 hAℓAB.2 hBℓBD.2
+  have ℓAC_ne_ℓBD : ℓAC ≠ ℓBD := by symm; apply line_ne_of_noncollinear hBDA hBℓBD.1 hBℓBD.2 hAℓAC.1
+  have ℓAC_ne_ℓCD : ℓAC ≠ ℓCD := by apply line_ne_of_noncollinear hACD hAℓAC.1 hAℓAC.2 hCℓCD.2
 
   refine
     ⟨ℓAB, ℓAC, ℓBD, ℓCD,
@@ -196,13 +208,13 @@ lemma P3'_dual_of_P3'
      ?nclℓABℓACℓBD, ?nclℓABℓACℓCD,
      ?nclℓABℓBDℓCD, ?nclℓACℓBDℓCD⟩
 
-  · suffices noncollinear ℓAC ℓAB ℓBD by
-      simpa [noncollinear, triSet, collinear] using this
+  · suffices noncollinear (G := G.dual) ℓAC ℓAB ℓBD by
+      simpa [noncollinear₁₂] using this
     exact nonconcurrent_chain hP2 hAB ℓAB_ne_ℓAC.symm ℓAB_ne_ℓBD hAℓAC.1 hAℓAB.1 hBℓBD.1 hAℓAB.2
   · exact nonconcurrent_chain hP2 hAC ℓAB_ne_ℓAC ℓAC_ne_ℓCD hAℓAB.1 hAℓAC.1 hCℓCD.1 hAℓAC.2
   · exact nonconcurrent_chain hP2 hBD ℓAB_ne_ℓBD ℓBD_ne_ℓCD hAℓAB.2 hBℓBD.1 hCℓCD.2 hBℓBD.2
-  · suffices noncollinear ℓAC ℓCD ℓBD  by
-      simpa [noncollinear, collinear, triSet] using this
+  · suffices noncollinear (G := G.dual) ℓAC ℓCD ℓBD  by
+      simpa [noncollinear₂₃] using this
     exact nonconcurrent_chain hP2 hCD ℓAC_ne_ℓCD ℓBD_ne_ℓCD.symm hAℓAC.2 hCℓCD.1 hBℓBD.2 hCℓCD.2
 
 
