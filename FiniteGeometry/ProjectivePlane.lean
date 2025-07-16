@@ -108,7 +108,7 @@ lemma points_distinct_of_noncollinear (hP1 : P1 (G := G)) {A B C P Q : G.Point}
     (hPBmB : P ∈ᵢ mB) (hPCmC : Q ∈ᵢ mC) : P ≠ Q := by
   rintro rfl
   have hm_eq : mB = mC := by apply line_eq_of_point_eq hP1 hA_ne_PB <;> assumption
-  subst hm_eq
+  subst mC
   simp [noncollinear, triSet, collinear] at hABC
   apply hABC mB <;> assumption
 
