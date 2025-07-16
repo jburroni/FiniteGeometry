@@ -103,8 +103,7 @@ lemma point_eq_of_incident
     hℓm hPℓ hPm hQℓ hQm
 
 lemma points_distinct_of_noncollinear (hP1 : P1 (G := G)) {A B C P Q : G.Point}
-    (hABC : noncollinear A B C) (hA_ne_PB : A ≠ P) (hA_ne_P : A ≠ Q)
-    {mB mC : G.Line}
+    (hABC : noncollinear A B C) (hA_ne_PB : A ≠ P) {mB mC : G.Line}
     (hAmB : A ∈ᵢ mB) (hBmB : B ∈ᵢ mB) (hAmC : A ∈ᵢ mC) (hCmC : C ∈ᵢ mC)
     (hPBmB : P ∈ᵢ mB) (hPCmC : Q ∈ᵢ mC) : P ≠ Q := by
   rintro rfl
