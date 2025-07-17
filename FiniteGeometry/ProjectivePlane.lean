@@ -224,16 +224,6 @@ lemma three_lines_through_point (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : 
 
 
 
-/-- Packaging Lemmas 1 + 2 into the standard **P₃**, **P₄** pair. -/
-def P3_from_P3' : IncidenceGeometry :=
-  let _ : P1 (G := G) := hP1
-  let _ : P2 (G := G) := hP2
-  have h₁ := three_lines_through_point hP1 hP2 hP3'
-  have h₂ := three_points_on_line hP1 hP2 hP3'
-  { Point     := G.Point,
-    Line      := G.Line,
-    incidence := G.incidence }
-
 end FromP3'
 
 namespace FromP3'
