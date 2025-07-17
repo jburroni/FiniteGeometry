@@ -130,10 +130,7 @@ lemma nonconcurrent_chain (hP2 : P2 (G := G)) (hPQ : P ≠ Q) (h₁ : l ≠ m) (
 
 
 lemma three_points_on_line (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G))
-    (ℓ : G.Line):
-    ∃ p q r : G.Point,
-      p ≠ q ∧ p ≠ r ∧ q ≠ r ∧
-      p ∈ᵢ ℓ ∧ q ∈ᵢ ℓ ∧ r ∈ᵢ ℓ := by
+    (ℓ : G.Line) : ∃ p q r : G.Point, p ≠ q ∧ p ≠ r ∧ q ≠ r ∧ p ∈ᵢ ℓ ∧ q ∈ᵢ ℓ ∧ r ∈ᵢ ℓ := by
   rcases hP3' with
     ⟨A,B,C,D,
      hAB,hAC,hAD,hBC,hBD,hCD,
@@ -218,8 +215,8 @@ lemma P3'_dual_of_P3'
 
 
 lemma three_lines_through_point (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G))
-    (p : (G.dual).Point) :
-    ∃ ℓ m n : (G.dual).Line, ℓ ≠ m ∧ ℓ ≠ n ∧ m ≠ n ∧ p ∈ᵢ ℓ ∧ p ∈ᵢ m ∧ p ∈ᵢ n :=
+    (p : G.Point) :
+    ∃ ℓ m n : G.Line, ℓ ≠ m ∧ ℓ ≠ n ∧ m ≠ n ∧ p ∈ᵢ ℓ ∧ p ∈ᵢ m ∧ p ∈ᵢ n :=
   three_points_on_line (G := G.dual) hP2 hP1 (P3'_dual_of_P3' hP1 hP2 hP3') p
 
 
