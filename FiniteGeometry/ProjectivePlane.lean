@@ -236,13 +236,13 @@ theorem lemma_1_2_5 (G : IncidenceGeometry) :
   · rintro ⟨⟨hP1, hP2⟩, hAlt⟩
     cases hAlt with
     | inl hP3' =>
-        let hP3 := FromP3'.three_points_on_line  hP1 ℓBD_ne_ℓCD hP3'
-        let hP4 := (FromP3'.three_lines_through_point hP1 ℓBD_ne_ℓCD hP3')
+        let hP3 := FromP3'.three_points_on_line  hP1 hP2 hP3'
+        let hP4 := FromP3'.three_lines_through_point hP1 hP2 hP3'
         exact
         { P1 := hP1,
-          P2 := ℓBD_ne_ℓCD,
+          P2 := hP2,
           P3 := hP3,
-          P4 := hP4 }
+          P4 := hP4}
     | inr hP3'' =>
         -- The P₃″ branch is handled dually (mirror-symmetric argument),
         -- left to the reader; `aesop` can discharge it automatically.
