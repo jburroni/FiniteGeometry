@@ -254,7 +254,7 @@ theorem lemma_1_2_5 (G : IncidenceGeometry) :
           aesop
         exact
         { P1 := hP1,
-          P2 := ℓBD_ne_ℓCD,
+          P2 := hP2,
           P3 := hP3,
           P4 := hP4 }
 
