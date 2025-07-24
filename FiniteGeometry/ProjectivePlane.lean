@@ -223,6 +223,22 @@ lemma three_lines_through_point (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : 
 
 end FromP3'
 
+namespace FromP3''
+open IncidenceGeometry ProjectivePrereqs AlternativeAxioms
+variable {G : IncidenceGeometry}
+
+lemma two_distinct_lines (hP1 : P1 (G := G)) (hP3'' : P3'' (G := G)): ∃ ℓ m : G.Line, ℓ ≠ m := by
+  rcases hP3'' with ⟨⟨p₀, ℓ₀, _⟩, hOff⟩
+  rcases hOff ℓ₀ ℓ₀ with ⟨q, hqℓ₀, _⟩
+  have hpq : p₀ ≠ q := by rintro rfl; contradiction
+  rcases hP1 hpq with ⟨m, ⟨_, hqm⟩, _⟩
+  use ℓ₀, m
+  show ℓ₀ ≠ m
+  rintro rfl; contradiction
+
+
+end FromP3''
+
 namespace FromP3'
 open ProjectivePrereqs AlternativeAxioms
 
