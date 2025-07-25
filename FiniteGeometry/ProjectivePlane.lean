@@ -101,21 +101,21 @@ lemma point_eq_of_incident
   line_eq_of_point_eq (G := G.dual) (hP1 := hP2) (A := ℓ) (P := m) (ℓ := P) (m := Q)
     hℓm hPℓ hPm hQℓ hQm
 
-lemma points_distinct_of_noncollinear (hP1 : P1 (G := G)) {A B C P Q : G.Point}
-    (hABC : noncollinear A B C) (hA_ne_P : A ≠ P) {mB mC : G.Line}
-    (hAmB : A ∈ᵢ mB) (hBmB : B ∈ᵢ mB) (hAmC : A ∈ᵢ mC) (hCmC : C ∈ᵢ mC)
-    (hPBmB : P ∈ᵢ mB) (hPCmC : Q ∈ᵢ mC) : P ≠ Q := by
-  rintro rfl
-  have hm_eq : mB = mC := by apply line_eq_of_point_eq hP1 hA_ne_P <;> assumption
-  subst mC
-  simp [noncollinear, triSet, collinear] at hABC
-  apply hABC mB <;> assumption
-
 lemma line_ne_of_noncollinear {A B C : G.Point} {ℓ₁ ℓ₂ : G.Line}
     (hABC  : noncollinear A B C) (hAℓ₁  : A ∈ᵢ ℓ₁) (hBℓ₁ : B ∈ᵢ ℓ₁) (hCℓ₂ : C ∈ᵢ ℓ₂) : ℓ₁ ≠ ℓ₂ := by
   rintro rfl
   apply hABC; use ℓ₁; simp [collinear, triSet]
   exact ⟨hAℓ₁, hBℓ₁, hCℓ₂⟩
+
+lemma points_distinct_of_noncollinear (hP1 : P1 (G := G)) {A B C P Q : G.Point}
+    (hABC : noncollinear A B C) (hA_ne_P : A ≠ P) {mB mC : G.Line}
+    (hAmB : A ∈ᵢ mB) (hBmB : B ∈ᵢ mB) (_ : A ∈ᵢ mC) (hCmC : C ∈ᵢ mC)
+    (_ : P ∈ᵢ mB) (_ : Q ∈ᵢ mC) : P ≠ Q := by
+  rintro rfl
+  apply line_ne_of_noncollinear hABC hAmB hBmB hCmC
+  show mB = mC
+  apply line_eq_of_point_eq hP1 hA_ne_P <;> assumption
+
 
 
 lemma nonconcurrent_chain (hP2 : P2 (G := G)) (hPQ : P ≠ Q) (h₁ : l ≠ m) (h₂ : m ≠ n)
