@@ -263,17 +263,14 @@ lemma P3'_of_P3'' (hP1   : P1 (G := G)) (hP2   : P2 (G := G)) (hP3'' : P3'' (G :
      hAB, hAC, hAD, hBC, hBD, hCD,
      ?hABC, ?hABD, ?hACD, ?hBCD⟩
 
-
-  -- 7. the four required non-collinearity conditions
-  have hABC : noncollinear A B C := by aesop
-  have hABD : noncollinear A B D := by aesop
-  have hACD : noncollinear A C D := by aesop
-  have hBCD : noncollinear B C D := by aesop
-
-  exact
-    ⟨A, B, C, D,
-     hAB, hAC, hAD, hBC, hBD, hCD,
-     hABC, hABD, hACD, hBCD⟩
+  · show noncollinear A B C
+    sorry
+  · show noncollinear A B D
+    sorry
+  · show noncollinear A C D
+    sorry
+  · show noncollinear B C D
+    sorry
 
 
 end FromP3''
