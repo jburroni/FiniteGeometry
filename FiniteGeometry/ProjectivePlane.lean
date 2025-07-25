@@ -78,9 +78,8 @@ def P3' : Prop :=
 def P3'' : Prop :=
   (∃ p ℓ, G.incidence p ℓ) ∧ ∀ ℓ m : G.Line, ∃ p, ¬ p ∈ᵢ ℓ ∧ ¬ p ∈ᵢ m
 
-end AlternativeAxioms
 
-namespace FromP3'
+section FromP3'
 open IncidenceGeometry ProjectivePrereqs AlternativeAxioms
 variable {G : IncidenceGeometry}
 variable (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G))
@@ -239,7 +238,7 @@ lemma three_lines_through_point (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : 
 
 end FromP3'
 
-namespace FromP3''
+section FromP3''
 open IncidenceGeometry ProjectivePrereqs AlternativeAxioms
 variable {G : IncidenceGeometry}
 
@@ -279,19 +278,18 @@ lemma P3'_of_P3'' (hP1   : P1 (G := G)) (hP2   : P2 (G := G)) (hP3'' : P3'' (G :
      ?hABC, ?hABD, ?hACD, ?hBCD⟩
 
   · show noncollinear A B C
-    exact FromP3'.noncollinear_of_line_through_AB_not_C hP1 hAB hAn hBn hCn
+    exact noncollinear_of_line_through_AB_not_C hP1 hAB hAn hBn hCn
   · show noncollinear A B D
-    refine FromP3'.noncollinear_of_line_through_AB_not_C hP1 hAB hAn hBn ?_
+    refine noncollinear_of_line_through_AB_not_C hP1 hAB hAn hBn ?_
     sorry
   · show noncollinear A C D
-    exact FromP3'.noncollinear_of_line_through_AB_not_C hP1 hAC hA_nAC hC_nAC hD_nAC
+    exact noncollinear_of_line_through_AB_not_C hP1 hAC hA_nAC hC_nAC hD_nAC
   · show noncollinear B C D
-    exact FromP3'.noncollinear_of_line_through_AB_not_C hP1 hBC hB_nBC hC_nBC hD_nBC
+    exact noncollinear_of_line_through_AB_not_C hP1 hBC hB_nBC hC_nBC hD_nBC
 
 
 end FromP3''
 
-namespace FromP3'
 open ProjectivePrereqs AlternativeAxioms
 
 theorem lemma_1_2_5 (G : IncidenceGeometry) :
@@ -326,4 +324,4 @@ theorem lemma_1_2_5 (G : IncidenceGeometry) :
           P3 := hP3,
           P4 := hP4 }
 
-end FromP3'
+end AlternativeAxioms
