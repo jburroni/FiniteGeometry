@@ -130,6 +130,21 @@ lemma nonconcurrent_chain (hP2 : P2 (G := G)) (hPQ : P ≠ Q) (h₁ : l ≠ m) (
     _ = Q := by apply point_eq_of_incident (ℓ:= m) (m:=n) (P:=A') (Q:=Q) <;> assumption
 
 
+lemma noncollinear_of_line_through_AB_not_C (hP1 : P1 (G := G)) {A B C : G.Point} (hAB : A ≠ B)
+    {ℓ : G.Line} (hAℓ : A ∈ᵢ ℓ) (hBℓ : B ∈ᵢ ℓ) (hC_not_ℓ : ¬ C ∈ᵢ ℓ) : noncollinear A B C := by
+  intro hCol
+  simp [triSet, collinear] at hCol
+  rcases hCol with ⟨m, hAm, hBm, hCm⟩
+
+  obtain ⟨ℓ₀, ⟨hAℓ₀, hBℓ₀⟩, huniq⟩ := hP1 hAB
+
+  have hℓ_eq : ℓ = ℓ₀ := huniq ℓ ⟨hAℓ, hBℓ⟩
+  have hm_eq : m = ℓ₀ := huniq m ⟨hAm, hBm⟩
+  subst m ℓ
+  exact hC_not_ℓ hCm
+
+
+
 lemma three_points_on_line (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G))
     (ℓ : G.Line) : ∃ p q r : G.Point, p ≠ q ∧ p ≠ r ∧ q ≠ r ∧ p ∈ᵢ ℓ ∧ q ∈ᵢ ℓ ∧ r ∈ᵢ ℓ := by
   rcases hP3' with
@@ -264,13 +279,14 @@ lemma P3'_of_P3'' (hP1   : P1 (G := G)) (hP2   : P2 (G := G)) (hP3'' : P3'' (G :
      ?hABC, ?hABD, ?hACD, ?hBCD⟩
 
   · show noncollinear A B C
-    sorry
+    exact FromP3'.noncollinear_of_line_through_AB_not_C hP1 hAB hAn hBn hCn
   · show noncollinear A B D
+    refine FromP3'.noncollinear_of_line_through_AB_not_C hP1 hAB hAn hBn ?_
     sorry
   · show noncollinear A C D
-    sorry
+    exact FromP3'.noncollinear_of_line_through_AB_not_C hP1 hAC hA_nAC hC_nAC hD_nAC
   · show noncollinear B C D
-    sorry
+    exact FromP3'.noncollinear_of_line_through_AB_not_C hP1 hBC hB_nBC hC_nBC hD_nBC
 
 
 end FromP3''
