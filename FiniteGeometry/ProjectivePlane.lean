@@ -134,12 +134,9 @@ lemma noncollinear_of_line_through_AB_not_C (hP1 : P1 (G := G)) {A B C : G.Point
   intro hCol
   simp [triSet, collinear] at hCol
   rcases hCol with ⟨m, hAm, hBm, hCm⟩
-
   obtain ⟨ℓ₀, ⟨hAℓ₀, hBℓ₀⟩, huniq⟩ := hP1 hAB
-
-  have hℓ_eq : ℓ = ℓ₀ := huniq ℓ ⟨hAℓ, hBℓ⟩
-  have hm_eq : m = ℓ₀ := huniq m ⟨hAm, hBm⟩
-  subst m ℓ
+  have : ℓ = m := line_eq_of_point_eq hP1 hAB hAℓ hBℓ hAm hBm
+  subst m
   exact hC_not_ℓ hCm
 
 
