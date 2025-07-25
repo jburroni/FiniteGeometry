@@ -118,6 +118,31 @@ lemma line_ne_of_noncollinear {A B C : G.Point} {ℓ₁ ℓ₂ : G.Line}
   apply hABC; use ℓ₁; simp [collinear, triSet]
   exact ⟨hAℓ₁, hBℓ₁, hCℓ₂⟩
 
+
+lemma noncollinear_of_line_through_AB_not_C
+    (hP1 : P1 (G := G)) {A B C : G.Point} (hAB : A ≠ B) {ℓ : G.Line} (hAℓ : A ∈ᵢ ℓ) (hBℓ : B ∈ᵢ ℓ)
+    (hC_not_ℓ : ¬ C ∈ᵢ ℓ) : noncollinear A B C := by
+  intro hCol
+  simp [noncollinear, triSet, collinear] at hCol
+  rcases hCol with ⟨m, hAm, hBm, hCm⟩
+
+  obtain ⟨ℓ₀, ⟨hAℓ₀, hBℓ₀⟩, huniq⟩ := hP1 hAB
+
+  have hℓ_eq : ℓ = ℓ₀ := huniq ℓ ⟨hAℓ, hBℓ⟩
+  have hm_eq : m = ℓ₀ := huniq m ⟨hAm, hBm⟩
+
+  have hml : m = ℓ := by
+    trans ℓ₀
+    · exact hm_eq
+    · exact (Eq.symm hℓ_eq)
+
+  have hCℓ : C ∈ᵢ ℓ := by
+    have hCm' : C ∈ᵢ m := hCm
+    cases hml
+    exact hCm'
+
+  exact hC_not_ℓ hCℓ
+
 lemma nonconcurrent_chain (hP2 : P2 (G := G)) (hPQ : P ≠ Q) (h₁ : l ≠ m) (h₂ : m ≠ n)
     (h₃ : P ∈ᵢ l) (h₄ : P ∈ᵢ m) (h₅ : Q ∈ᵢ n) (h₆ : Q ∈ᵢ m) : noncollinear (G:= G.dual) l m n := by
   suffices h_no_common : ¬ ∃ A : G.Point, A ∈ᵢ l ∧ A ∈ᵢ m ∧ A ∈ᵢ n by
@@ -235,6 +260,44 @@ lemma two_distinct_lines (hP1 : P1 (G := G)) (hP3'' : P3'' (G := G)): ∃ ℓ m 
   use ℓ₀, m
   show ℓ₀ ≠ m
   rintro rfl; contradiction
+
+
+lemma P3'_of_P3'' (hP1   : P1 (G := G)) (hP2   : P2 (G := G)) (hP3'' : P3'' (G := G)) :
+    P3' (G := G) := by
+  obtain ⟨ℓ, m, hℓm⟩ := two_distinct_lines hP1 hP3''
+  obtain ⟨B, ⟨hBℓ, hBm⟩, _⟩ := hP2 hℓm
+
+  rcases hP3''.2 ℓ m with ⟨A, hAℓ, hAm⟩
+  have hAB : A ≠ B := by rintro rfl; contradiction
+  obtain ⟨n, ⟨hAn, hBn⟩, huniq_n⟩ := hP1 hAB
+
+  rcases hP3''.2 ℓ n with ⟨C, hCℓ, hCn⟩
+  have hAC : A ≠ C := by rintro rfl; contradiction
+  have hBC : B ≠ C := by rintro rfl; contradiction
+
+  obtain ⟨nAC, ⟨hA_nAC, hC_nAC⟩, _⟩ := hP1 hAC
+  obtain ⟨nBC, ⟨hB_nBC, hC_nBC⟩, _⟩ := hP1 hBC
+
+  rcases hP3''.2 nAC nBC with ⟨D, hD_nAC, hD_nBC⟩
+  have hAD : A ≠ D := by rintro rfl; contradiction
+  have hBD : B ≠ D := by rintro rfl; contradiction
+  have hCD : C ≠ D := by rintro rfl; contradiction
+  refine
+    ⟨A, B, C, D,
+     hAB, hAC, hAD, hBC, hBD, hCD,
+     ?hABC, ?hABD, ?hACD, ?hBCD⟩
+
+
+  -- 7. the four required non-collinearity conditions
+  have hABC : noncollinear A B C := by aesop
+  have hABD : noncollinear A B D := by aesop
+  have hACD : noncollinear A C D := by aesop
+  have hBCD : noncollinear B C D := by aesop
+
+  exact
+    ⟨A, B, C, D,
+     hAB, hAC, hAD, hBC, hBD, hCD,
+     hABC, hABD, hACD, hBCD⟩
 
 
 end FromP3''
