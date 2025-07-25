@@ -102,11 +102,11 @@ lemma point_eq_of_incident
     hℓm hPℓ hPm hQℓ hQm
 
 lemma points_distinct_of_noncollinear (hP1 : P1 (G := G)) {A B C P Q : G.Point}
-    (hABC : noncollinear A B C) (hA_ne_PB : A ≠ P) {mB mC : G.Line}
+    (hABC : noncollinear A B C) (hA_ne_P : A ≠ P) {mB mC : G.Line}
     (hAmB : A ∈ᵢ mB) (hBmB : B ∈ᵢ mB) (hAmC : A ∈ᵢ mC) (hCmC : C ∈ᵢ mC)
     (hPBmB : P ∈ᵢ mB) (hPCmC : Q ∈ᵢ mC) : P ≠ Q := by
   rintro rfl
-  have hm_eq : mB = mC := by apply line_eq_of_point_eq hP1 hA_ne_PB <;> assumption
+  have hm_eq : mB = mC := by apply line_eq_of_point_eq hP1 hA_ne_P <;> assumption
   subst mC
   simp [noncollinear, triSet, collinear] at hABC
   apply hABC mB <;> assumption
@@ -133,9 +133,9 @@ lemma noncollinear_of_line_through_AB_not_C (hP1 : P1 (G := G)) {A B C : G.Point
     {ℓ : G.Line} (hAℓ : A ∈ᵢ ℓ) (hBℓ : B ∈ᵢ ℓ) (hC_not_ℓ : ¬ C ∈ᵢ ℓ) : noncollinear A B C := by
   intro hCol
   simp [triSet, collinear] at hCol
-  rcases hCol with ⟨m, hAm, hBm, hCm⟩
-  obtain ⟨ℓ₀, ⟨hAℓ₀, hBℓ₀⟩, huniq⟩ := hP1 hAB
-  have : ℓ = m := line_eq_of_point_eq hP1 hAB hAℓ hBℓ hAm hBm
+  rcases hCol with ⟨m, _, _, hCm⟩
+  obtain ⟨_, ⟨_, _⟩, _⟩ := hP1 hAB
+  have : ℓ = m := by apply line_eq_of_point_eq hP1 hAB <;> assumption
   subst m
   exact hC_not_ℓ hCm
 
