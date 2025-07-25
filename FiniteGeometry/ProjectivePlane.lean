@@ -36,6 +36,21 @@ instance dual_projective (G : IncidenceGeometry) [ProjectivePlane G] : Projectiv
   P3 := ProjectivePlane.P4
   P4 := ProjectivePlane.P3
 
+namespace ProjectivePrereqs
+variable {G : IncidenceGeometry}
+
+noncomputable
+def line_through {p q : G.Point} (hpq : p ≠ q) (hP1 : P1 (G:=G)) : G.Line :=
+  Classical.choose (hP1 hpq)
+
+lemma line_through_unique
+    {p q : G.Point} (hpq : p ≠ q) (hP1 : P1 (G:=G)) {ℓ : G.Line} (hpℓ : p ∈ᵢ ℓ) (hqℓ : q ∈ᵢ ℓ) :
+    ℓ = line_through hpq hP1 := by
+  let huniq := (Classical.choose_spec (hP1 hpq)).2
+  exact huniq ℓ ⟨hpℓ, hqℓ⟩
+
+end ProjectivePrereqs
+
 
 namespace AlternativeAxioms
 variable {G : IncidenceGeometry}
@@ -83,6 +98,53 @@ section FromP3'
 open IncidenceGeometry ProjectivePrereqs AlternativeAxioms
 variable {G : IncidenceGeometry}
 variable (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G))
+
+lemma noncollinear_of_witness {A B C : G.Point} {ℓ : G.Line} (hP1 : P1 (G := G)) (hAB : A ≠ B)
+    (hAℓ : A ∈ᵢ ℓ) (hBℓ : B ∈ᵢ ℓ) (hCnotℓ : ¬ C ∈ᵢ ℓ) :
+    (∀ x : G.Line, A ∈ᵢ x → B ∈ᵢ x → ¬ C ∈ᵢ x) := by
+  intro x hAx hBx
+  have hx_eq : x = ℓ :=
+    let h₁ := line_through_unique hAB hP1 hAℓ hBℓ
+    let h₂ := line_through_unique hAB hP1 hAx  hBx
+    trans line_through hAB hP1 <;> assumption
+  -- Rewrite and finish.
+  cases hx_eq
+  exact hCnotℓ
+
+lemma XXX {ℓ : G.Line} (hP1 : P1 (G := G)) (hAB : A ≠ B) :
+    A ∈ᵢ ℓ ∧ B ∈ᵢ ℓ ∧ ¬C ∈ᵢ ℓ → noncollinear A B C := by
+  rintro ⟨hAℓ, hBℓ, hC_not_ℓ⟩
+  -- simp only [noncollinear, triSet, collinear, trace]
+  simp [noncollinear, collinear, triSet]
+  intro h; simp only [noncollinear, triSet, collinear, trace] at h
+  unfold P1 at hP1
+  rcases h with ⟨m, hsubs⟩
+  have hAm : A ∈ᵢ m := by
+    exact hsubs (by
+      left; rfl)
+  have hBm : B ∈ᵢ m := by
+    exact hsubs (by
+      right; left; rfl)
+
+  rcases hP1 hAB with ⟨m₀, huniq⟩
+
+  -- 4. Identify m and ℓ with that unique line.
+  have hm_eq : m = m₀      := huniq m  ⟨hAm, hBm⟩
+  have hℓ_eq : ℓ = m₀      := (huniq ℓ ⟨hAℓ, hBℓ⟩).symm
+  have hmℓ  : m = ℓ        := by
+    trans m₀ <;> assumption
+
+  -- 5. C lies on m, hence on ℓ – contradiction.
+  have hCℓ : C ∈ᵢ ℓ := by
+    have hCm : C ∈ᵢ m := by
+      exact hsubs (by
+        right; right; rfl)
+    cases hmℓ;          -- rewrite m = ℓ
+    exact hCm
+
+  exact hC_not_ℓ hCℓ
+
+
 
 lemma line_eq_of_point_eq
     (hP1 : P1 (G := G)) {A P : G.Point} (hA_ne_P : A ≠ P) {ℓ m : G.Line}
