@@ -119,30 +119,6 @@ lemma line_ne_of_noncollinear {A B C : G.Point} {ℓ₁ ℓ₂ : G.Line}
   exact ⟨hAℓ₁, hBℓ₁, hCℓ₂⟩
 
 
-lemma noncollinear_of_line_through_AB_not_C
-    (hP1 : P1 (G := G)) {A B C : G.Point} (hAB : A ≠ B) {ℓ : G.Line} (hAℓ : A ∈ᵢ ℓ) (hBℓ : B ∈ᵢ ℓ)
-    (hC_not_ℓ : ¬ C ∈ᵢ ℓ) : noncollinear A B C := by
-  intro hCol
-  simp [noncollinear, triSet, collinear] at hCol
-  rcases hCol with ⟨m, hAm, hBm, hCm⟩
-
-  obtain ⟨ℓ₀, ⟨hAℓ₀, hBℓ₀⟩, huniq⟩ := hP1 hAB
-
-  have hℓ_eq : ℓ = ℓ₀ := huniq ℓ ⟨hAℓ, hBℓ⟩
-  have hm_eq : m = ℓ₀ := huniq m ⟨hAm, hBm⟩
-
-  have hml : m = ℓ := by
-    trans ℓ₀
-    · exact hm_eq
-    · exact (Eq.symm hℓ_eq)
-
-  have hCℓ : C ∈ᵢ ℓ := by
-    have hCm' : C ∈ᵢ m := hCm
-    cases hml
-    exact hCm'
-
-  exact hC_not_ℓ hCℓ
-
 lemma nonconcurrent_chain (hP2 : P2 (G := G)) (hPQ : P ≠ Q) (h₁ : l ≠ m) (h₂ : m ≠ n)
     (h₃ : P ∈ᵢ l) (h₄ : P ∈ᵢ m) (h₅ : Q ∈ᵢ n) (h₆ : Q ∈ᵢ m) : noncollinear (G:= G.dual) l m n := by
   suffices h_no_common : ¬ ∃ A : G.Point, A ∈ᵢ l ∧ A ∈ᵢ m ∧ A ∈ᵢ n by
