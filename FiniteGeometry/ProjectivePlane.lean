@@ -103,13 +103,10 @@ lemma noncollinear_of_witness {A B C : G.Point} {ℓ : G.Line} (hP1 : P1 (G := G
     (hAℓ : A ∈ᵢ ℓ) (hBℓ : B ∈ᵢ ℓ) (hCnotℓ : ¬ C ∈ᵢ ℓ) :
     (∀ x : G.Line, A ∈ᵢ x → B ∈ᵢ x → ¬ C ∈ᵢ x) := by
   intro x hAx hBx
-  have hx_eq : x = ℓ :=
-    let h₁ := line_through_unique hAB hP1 hAℓ hBℓ
-    let h₂ := line_through_unique hAB hP1 hAx  hBx
-    trans line_through hAB hP1 <;> assumption
-  -- Rewrite and finish.
-  cases hx_eq
-  exact hCnotℓ
+  suffices x = ℓ by subst x; exact hCnotℓ
+  have h₁ := line_through_unique hAB hP1 hAx hBx
+  have h₂ := (line_through_unique hAB hP1 hAℓ hBℓ).symm
+  exact h₁.trans h₂
 
 lemma XXX {ℓ : G.Line} (hP1 : P1 (G := G)) (hAB : A ≠ B) :
     A ∈ᵢ ℓ ∧ B ∈ᵢ ℓ ∧ ¬C ∈ᵢ ℓ → noncollinear A B C := by
