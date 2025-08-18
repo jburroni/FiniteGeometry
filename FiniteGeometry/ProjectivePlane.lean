@@ -293,50 +293,23 @@ lemma P3'_of_P3''
   rcases hP3''.2 n n with ⟨Q₁, hQ₁n, _⟩
   have hAQ₁ : A ≠ Q₁ := by rintro rfl; exact hQ₁n hAn
   obtain ⟨r, ⟨hAr, hQ₁r⟩, huniq_r⟩ := hP1 hAQ₁
-  have hr_ne_n : r ≠ n := by
-    intro h
-    have : Q₁ ∈ᵢ n := by
-      exact by cases h; exact hQ₁r
-    exact hQ₁n this
+  have hr_ne_n : r ≠ n := by rintro rfl; contradiction
 
   rcases hP3''.2 n r with ⟨Q₂, hQ₂n, hQ₂r⟩
-  have hAQ₂ : A ≠ Q₂ := by
-    intro h; subst h; exact hQ₂n hAn
+  have hAQ₂ : A ≠ Q₂ := by rintro rfl; contradiction
   obtain ⟨s, ⟨hAs, hQ₂s⟩, huniq_s⟩ := hP1 hAQ₂
-  have hs_ne_n : s ≠ n := by
-    intro h
-    have : Q₂ ∈ᵢ n := by
-      have : Q₂ ∈ᵢ s := hQ₂s
-      exact by cases h; exact this
-    exact hQ₂n this
-  have hs_ne_r : s ≠ r := by
-    intro h
-    have : Q₂ ∈ᵢ r := by
-      have : Q₂ ∈ᵢ s := hQ₂s
-      cases h; exact this
-    exact hQ₂r this
+  have hs_ne_n : s ≠ n := by rintro rfl; contradiction
+  have hs_ne_r : s ≠ r := by rintro rfl; contradiction
 
-  have hr_ne_ℓ : r ≠ ℓ := by
-    intro h
-    have : A ∈ᵢ ℓ := by
-      have : A ∈ᵢ r := hAr
-      cases h; exact this
-    exact hAℓ this
+  have hr_ne_ℓ : r ≠ ℓ := by rintro rfl; contradiction
   obtain ⟨C, ⟨hCr, hCℓ⟩, hCuniq⟩ := hP2 hr_ne_ℓ
 
-  have hs_ne_m : s ≠ m := by
-    intro h
-    have : A ∈ᵢ m := by
-      have : A ∈ᵢ s := hAs
-      cases h; exact this
-    exact hAm this
+  have hs_ne_m : s ≠ m := by rintro rfl; contradiction
   obtain ⟨D, ⟨hDs, hDm⟩, hDuniq⟩ := hP2 hs_ne_m
 
   -- basic distinctness
-  have hAC : A ≠ C := by
-    intro h; subst h; exact hAℓ hCℓ
-  have hAD : A ≠ D := by
-    intro h; subst h; exact hAm hDm
+  have hAC : A ≠ C := by rintro rfl; exact hAℓ hCℓ
+  have hAD : A ≠ D := by rintro rfl; exact hAm hDm
 
   have hBr : ¬ B ∈ᵢ r := by
     intro hB_r
@@ -351,15 +324,13 @@ lemma P3'_of_P3''
         (A := A) (P := B) (ℓ := s) (m := n) hAB hAs hB_s hAn hBn
     exact hs_ne_n this
 
-  have hBC : B ≠ C := by
-    intro h; subst h; exact hBr hCr
-  have hBD : B ≠ D := by
-    intro h; subst h; exact hBs hDs
+  have hBC : B ≠ C := by rintro rfl; contradiction
+  have hBD : B ≠ D := by rintro rfl; contradiction
 
   have hCD : C ≠ D := by
     rintro rfl
     have : C = B := hBuniq C ⟨hCℓ, hDm⟩
-    subst C; exact hBr hCr
+    subst C; contradiction
 
   -- show C ∉ n
   have hCnotn : ¬ C ∈ᵢ n := by
@@ -387,9 +358,7 @@ lemma P3'_of_P3''
   have hDnotℓ : ¬ D ∈ᵢ ℓ := by
     intro hDℓ
     have hDB : D = B := hBuniq D ⟨hDℓ, hDm⟩
-    have : B ∈ᵢ n := hBn
-    have : D ∈ᵢ n := by cases hDB; exact this
-    exact hDnotn this
+    subst B; contradiction
 
   -- assemble the four noncollinearities via the helper lemma
   have hABC : noncollinear (G := G) A B C :=
