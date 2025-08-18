@@ -396,20 +396,10 @@ theorem lemma_1_2_5 (G : IncidenceGeometry) :
           P3 := three_points_on_line  hP1 hP2 hP3',
           P4 := three_lines_through_point hP1 hP2 hP3'}
     | inr hP3'' =>
-        -- The P₃″ branch is handled dually (mirror-symmetric argument),
-        -- left to the reader; `aesop` can discharge it automatically.
-        have hP3 : ∀ ℓ : G.Line, ∃ p q r : G.Point,
-            p ≠ q ∧ p ≠ r ∧ q ≠ r ∧
-            G.incidence p ℓ ∧ G.incidence q ℓ ∧ G.incidence r ℓ := by
-          aesop
-        have hP4 : ∀ p : G.Point, ∃ ℓ m n : G.Line,
-            ℓ ≠ m ∧ ℓ ≠ n ∧ m ≠ n ∧
-            G.incidence p ℓ ∧ G.incidence p m ∧ G.incidence p n := by
-          aesop
         exact
         { P1 := hP1,
           P2 := hP2,
-          P3 := hP3,
-          P4 := hP4 }
+          P3 := three_points_on_line hP1 hP2 (P3'_of_P3'' hP1 hP2 hP3''),
+          P4 := three_lines_through_point hP1 hP2 (P3'_of_P3'' hP1 hP2 hP3'') }
 
 end AlternativeAxioms
