@@ -279,40 +279,132 @@ lemma two_distinct_lines (hP1 : P1 (G := G)) (hP3'' : P3'' (G := G)): ∃ ℓ m 
   rintro rfl; contradiction
 
 
-lemma P3'_of_P3'' (hP1   : P1 (G := G)) (hP2   : P2 (G := G)) (hP3'' : P3'' (G := G)) :
+lemma P3'_of_P3''
+    (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3'' : P3'' (G := G)) :
     P3' (G := G) := by
-  obtain ⟨ℓ, m, hℓm⟩ := two_distinct_lines hP1 hP3''
-  obtain ⟨B, ⟨hBℓ, hBm⟩, _⟩ := hP2 hℓm
+  obtain ⟨ℓ, m, hℓm⟩ := two_distinct_lines (G := G) hP1 hP3''
+  obtain ⟨B, ⟨hBℓ, hBm⟩, hBuniq⟩ := hP2 hℓm
 
   rcases hP3''.2 ℓ m with ⟨A, hAℓ, hAm⟩
-  have hAB : A ≠ B := by rintro rfl; contradiction
+  have hAB : A ≠ B := by rintro rfl; exact hAℓ hBℓ
+
   obtain ⟨n, ⟨hAn, hBn⟩, huniq_n⟩ := hP1 hAB
 
-  rcases hP3''.2 ℓ n with ⟨C, hCℓ, hCn⟩
-  have hAC : A ≠ C := by rintro rfl; contradiction
-  have hBC : B ≠ C := by rintro rfl; contradiction
+  rcases hP3''.2 n n with ⟨Q₁, hQ₁n, _⟩
+  have hAQ₁ : A ≠ Q₁ := by rintro rfl; exact hQ₁n hAn
+  obtain ⟨r, ⟨hAr, hQ₁r⟩, huniq_r⟩ := hP1 hAQ₁
+  have hr_ne_n : r ≠ n := by
+    intro h
+    have : Q₁ ∈ᵢ n := by
+      exact by cases h; exact hQ₁r
+    exact hQ₁n this
 
-  obtain ⟨nAC, ⟨hA_nAC, hC_nAC⟩, _⟩ := hP1 hAC
-  obtain ⟨nBC, ⟨hB_nBC, hC_nBC⟩, _⟩ := hP1 hBC
+  rcases hP3''.2 n r with ⟨Q₂, hQ₂n, hQ₂r⟩
+  have hAQ₂ : A ≠ Q₂ := by
+    intro h; subst h; exact hQ₂n hAn
+  obtain ⟨s, ⟨hAs, hQ₂s⟩, huniq_s⟩ := hP1 hAQ₂
+  have hs_ne_n : s ≠ n := by
+    intro h
+    have : Q₂ ∈ᵢ n := by
+      have : Q₂ ∈ᵢ s := hQ₂s
+      exact by cases h; exact this
+    exact hQ₂n this
+  have hs_ne_r : s ≠ r := by
+    intro h
+    have : Q₂ ∈ᵢ r := by
+      have : Q₂ ∈ᵢ s := hQ₂s
+      cases h; exact this
+    exact hQ₂r this
 
-  rcases hP3''.2 nAC nBC with ⟨D, hD_nAC, hD_nBC⟩
-  have hAD : A ≠ D := by rintro rfl; contradiction
-  have hBD : B ≠ D := by rintro rfl; contradiction
-  have hCD : C ≠ D := by rintro rfl; contradiction
-  refine
+  have hr_ne_ℓ : r ≠ ℓ := by
+    intro h
+    have : A ∈ᵢ ℓ := by
+      have : A ∈ᵢ r := hAr
+      cases h; exact this
+    exact hAℓ this
+  obtain ⟨C, ⟨hCr, hCℓ⟩, hCuniq⟩ := hP2 hr_ne_ℓ
+
+  have hs_ne_m : s ≠ m := by
+    intro h
+    have : A ∈ᵢ m := by
+      have : A ∈ᵢ s := hAs
+      cases h; exact this
+    exact hAm this
+  obtain ⟨D, ⟨hDs, hDm⟩, hDuniq⟩ := hP2 hs_ne_m
+
+  -- basic distinctness
+  have hAC : A ≠ C := by
+    intro h; subst h; exact hAℓ hCℓ
+  have hAD : A ≠ D := by
+    intro h; subst h; exact hAm hDm
+
+  have hBr : ¬ B ∈ᵢ r := by
+    intro hB_r
+    have : r = n :=
+      line_eq_of_point_eq (G := G) (hP1 := hP1)
+        (A := A) (P := B) (ℓ := r) (m := n) hAB hAr hB_r hAn hBn
+    exact hr_ne_n this
+  have hBs : ¬ B ∈ᵢ s := by
+    intro hB_s
+    have : s = n :=
+      line_eq_of_point_eq (G := G) (hP1 := hP1)
+        (A := A) (P := B) (ℓ := s) (m := n) hAB hAs hB_s hAn hBn
+    exact hs_ne_n this
+
+  have hBC : B ≠ C := by
+    intro h; subst h; exact hBr hCr
+  have hBD : B ≠ D := by
+    intro h; subst h; exact hBs hDs
+
+  have hCD : C ≠ D := by
+    rintro rfl
+    have : C = B := hBuniq C ⟨hCℓ, hDm⟩
+    subst C; exact hBr hCr
+
+  -- show C ∉ n
+  have hCnotn : ¬ C ∈ᵢ n := by
+    intro hCn
+    have : r = n :=
+      line_eq_of_point_eq (G := G) (hP1 := hP1)
+        (A := A) (P := C) (ℓ := r) (m := n) hAC hAr hCr hAn hCn
+    exact hr_ne_n this
+
+  -- show D ∉ n
+  have hDnotn : ¬ D ∈ᵢ n := by
+    intro hDn
+    have : s = n :=
+      line_eq_of_point_eq (G := G) (hP1 := hP1)
+        (A := A) (P := D) (ℓ := s) (m := n) hAD hAs hDs hAn hDn
+    exact hs_ne_n this
+
+  -- show D ∉ r and D ∉ ℓ
+  have hDnotr : ¬ D ∈ᵢ r := by
+    intro hDr; apply hs_ne_r.symm
+    show r = s
+    exact
+      line_eq_of_point_eq (G := G) (hP1 := hP1)
+        (A := A) (P := D) (ℓ := r) (m := s) hAD hAr hDr hAs hDs
+  have hDnotℓ : ¬ D ∈ᵢ ℓ := by
+    intro hDℓ
+    have hDB : D = B := hBuniq D ⟨hDℓ, hDm⟩
+    have : B ∈ᵢ n := hBn
+    have : D ∈ᵢ n := by cases hDB; exact this
+    exact hDnotn this
+
+  -- assemble the four noncollinearities via the helper lemma
+  have hABC : noncollinear (G := G) A B C :=
+    noncollinear_of_line_through_AB_not_C (G := G) hP1 hAB hAn hBn hCnotn
+  have hABD : noncollinear (G := G) A B D :=
+    noncollinear_of_line_through_AB_not_C (G := G) hP1 hAB hAn hBn hDnotn
+  have hACD : noncollinear (G := G) A C D := by
+    exact noncollinear_of_line_through_AB_not_C (G := G) hP1 hAC hAr hCr hDnotr
+  have hBCD : noncollinear (G := G) B C D := by
+    exact noncollinear_of_line_through_AB_not_C (G := G) hP1 hBC hBℓ hCℓ hDnotℓ
+
+  exact
     ⟨A, B, C, D,
      hAB, hAC, hAD, hBC, hBD, hCD,
-     ?hABC, ?hABD, ?hACD, ?hBCD⟩
-
-  · show noncollinear A B C
-    exact noncollinear_of_line_through_AB_not_C hP1 hAB hAn hBn hCn
-  · show noncollinear A B D
-    refine noncollinear_of_line_through_AB_not_C hP1 hAB hAn hBn ?_
-    sorry
-  · show noncollinear A C D
-    exact noncollinear_of_line_through_AB_not_C hP1 hAC hA_nAC hC_nAC hD_nAC
-  · show noncollinear B C D
-    exact noncollinear_of_line_through_AB_not_C hP1 hBC hB_nBC hC_nBC hD_nBC
+     hABC, hABD, hACD, hBCD⟩
 
 
 end FromP3''
