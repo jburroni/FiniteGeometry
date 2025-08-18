@@ -99,7 +99,7 @@ open IncidenceGeometry ProjectivePrereqs AlternativeAxioms
 variable {G : IncidenceGeometry}
 variable (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G))
 
-lemma noncollinear_of_witness {A B C : G.Point} {ℓ : G.Line} (hP1 : P1 (G := G)) (hAB : A ≠ B)
+lemma noncollinear_of_witness' {A B C : G.Point} {ℓ : G.Line} (hP1 : P1 (G := G)) (hAB : A ≠ B)
     (hAℓ : A ∈ᵢ ℓ) (hBℓ : B ∈ᵢ ℓ) (hCnotℓ : ¬ C ∈ᵢ ℓ) :
     (∀ x : G.Line, A ∈ᵢ x → B ∈ᵢ x → ¬ C ∈ᵢ x) := by
   intro x hAx hBx
@@ -108,40 +108,11 @@ lemma noncollinear_of_witness {A B C : G.Point} {ℓ : G.Line} (hP1 : P1 (G := G
   have h₂ := (line_through_unique hAB hP1 hAℓ hBℓ).symm
   exact h₁.trans h₂
 
-lemma XXX {ℓ : G.Line} (hP1 : P1 (G := G)) (hAB : A ≠ B) :
+lemma noncollinear_of_witness {ℓ : G.Line} (hP1 : P1 (G := G)) (hAB : A ≠ B) :
     A ∈ᵢ ℓ ∧ B ∈ᵢ ℓ ∧ ¬C ∈ᵢ ℓ → noncollinear A B C := by
   rintro ⟨hAℓ, hBℓ, hC_not_ℓ⟩
-  -- simp only [noncollinear, triSet, collinear, trace]
-  simp [noncollinear, collinear, triSet]
-  intro h; simp only [noncollinear, triSet, collinear, trace] at h
-  unfold P1 at hP1
-  rcases h with ⟨m, hsubs⟩
-  have hAm : A ∈ᵢ m := by
-    exact hsubs (by
-      left; rfl)
-  have hBm : B ∈ᵢ m := by
-    exact hsubs (by
-      right; left; rfl)
-
-  rcases hP1 hAB with ⟨m₀, huniq⟩
-
-  -- 4. Identify m and ℓ with that unique line.
-  have hm_eq : m = m₀      := huniq m  ⟨hAm, hBm⟩
-  have hℓ_eq : ℓ = m₀      := (huniq ℓ ⟨hAℓ, hBℓ⟩).symm
-  have hmℓ  : m = ℓ        := by
-    trans m₀ <;> assumption
-
-  -- 5. C lies on m, hence on ℓ – contradiction.
-  have hCℓ : C ∈ᵢ ℓ := by
-    have hCm : C ∈ᵢ m := by
-      exact hsubs (by
-        right; right; rfl)
-    cases hmℓ;          -- rewrite m = ℓ
-    exact hCm
-
-  exact hC_not_ℓ hCℓ
-
-
+  simp [noncollinear, triSet, collinear]
+  exact noncollinear_of_witness' hP1 hAB hAℓ hBℓ hC_not_ℓ
 
 lemma line_eq_of_point_eq
     (hP1 : P1 (G := G)) {A P : G.Point} (hA_ne_P : A ≠ P) {ℓ m : G.Line}
