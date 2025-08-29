@@ -37,7 +37,7 @@ instance dual_projective (G : IncidenceGeometry) [ProjectivePlane G] : Projectiv
   P4 := ProjectivePlane.P3
 
 namespace ProjectivePrereqs
-variable {G : IncidenceGeometry}
+variable {G : IncidenceGeometry} {A B C : G.Point} {ℓ m: G.Line}
 
 noncomputable
 def line_through {p q : G.Point} (hpq : p ≠ q) (hP1 : P1 (G:=G)) : G.Line :=
@@ -49,12 +49,7 @@ lemma line_through_unique
   let huniq := (Classical.choose_spec (hP1 hpq)).2
   exact huniq ℓ ⟨hpℓ, hqℓ⟩
 
-end ProjectivePrereqs
-
-
-namespace AlternativeAxioms
-variable {G : IncidenceGeometry}
-
+section noncollinear
 def triSet (a b c : G.Point) : Set G.Point :=
   {x | x = a ∨ x = b ∨ x = c}
 
@@ -80,6 +75,47 @@ lemma noncollinear₂₃ {A B C : G.Point} : noncollinear A B C ↔ noncollinear
 lemma noncollinear₃₁₂ {A B C : G.Point} : noncollinear C A B ↔ noncollinear A B C := by
   simp [noncollinear, triSet, collinear]
   tauto
+end noncollinear
+
+lemma noncollinear_of_witness' (hP1 : P1 (G := G)) (hAB : A ≠ B)
+    (hAℓ : A ∈ᵢ ℓ) (hBℓ : B ∈ᵢ ℓ) (hCnotℓ : ¬ C ∈ᵢ ℓ) :
+    (∀ x : G.Line, A ∈ᵢ x → B ∈ᵢ x → ¬ C ∈ᵢ x) := by
+  intro x hAx hBx
+  suffices x = ℓ by subst x; exact hCnotℓ
+  have h₁ := line_through_unique hAB hP1 hAx hBx
+  have h₂ := (line_through_unique hAB hP1 hAℓ hBℓ).symm
+  exact h₁.trans h₂
+
+lemma noncollinear_of_witness (hP1 : P1 (G := G)) (hAB : A ≠ B) :
+    A ∈ᵢ ℓ ∧ B ∈ᵢ ℓ ∧ ¬C ∈ᵢ ℓ → noncollinear A B C := by
+  rintro ⟨hAℓ, hBℓ, hC_not_ℓ⟩
+  simp [noncollinear, triSet, collinear]
+  exact noncollinear_of_witness' hP1 hAB hAℓ hBℓ hC_not_ℓ
+
+lemma line_eq_of_point_eq
+    (hP1 : P1 (G := G)) (hA_ne_B : A ≠ B)
+    (hAℓ : A ∈ᵢ ℓ) (hBℓ : B ∈ᵢ ℓ) (hAm : A ∈ᵢ m) (hBm : B ∈ᵢ m) : ℓ = m := by
+  obtain ⟨l, _, huniq⟩ := hP1 hA_ne_B
+  have hℓ : ℓ = l := huniq ℓ ⟨hAℓ, hBℓ⟩
+  have hm : m = l := huniq m ⟨hAm, hBm⟩
+  trans l
+  · exact hℓ
+  · exact hm.symm
+
+lemma not_mem_of_line_ne (hP1 : P1 (G := G)) (hAB : A ≠ B)
+    (hAℓ : A ∈ᵢ ℓ) (hBℓ : B ∈ᵢ ℓ) (hAm : A ∈ᵢ m) (hne : ℓ ≠ m) :
+    ¬ B ∈ᵢ m := by
+  intro hBm
+  have : ℓ = m := line_eq_of_point_eq (G := G) (hP1 := hP1) hAB hAℓ hBℓ hAm hBm
+  exact hne this
+
+end ProjectivePrereqs
+
+
+namespace AlternativeAxioms
+open ProjectivePrereqs
+variable {G : IncidenceGeometry}
+
 
 def P3' : Prop :=
   ∃ A B C D : G.Point,
@@ -97,47 +133,23 @@ def P3'' : Prop :=
 section FromP3'
 open IncidenceGeometry ProjectivePrereqs AlternativeAxioms
 variable {G : IncidenceGeometry}
+variable {ℓ m : G.Line} {A B C : G.Point}
 variable (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G))
 
-lemma noncollinear_of_witness' {A B C : G.Point} {ℓ : G.Line} (hP1 : P1 (G := G)) (hAB : A ≠ B)
-    (hAℓ : A ∈ᵢ ℓ) (hBℓ : B ∈ᵢ ℓ) (hCnotℓ : ¬ C ∈ᵢ ℓ) :
-    (∀ x : G.Line, A ∈ᵢ x → B ∈ᵢ x → ¬ C ∈ᵢ x) := by
-  intro x hAx hBx
-  suffices x = ℓ by subst x; exact hCnotℓ
-  have h₁ := line_through_unique hAB hP1 hAx hBx
-  have h₂ := (line_through_unique hAB hP1 hAℓ hBℓ).symm
-  exact h₁.trans h₂
 
-lemma noncollinear_of_witness {ℓ : G.Line} (hP1 : P1 (G := G)) (hAB : A ≠ B) :
-    A ∈ᵢ ℓ ∧ B ∈ᵢ ℓ ∧ ¬C ∈ᵢ ℓ → noncollinear A B C := by
-  rintro ⟨hAℓ, hBℓ, hC_not_ℓ⟩
-  simp [noncollinear, triSet, collinear]
-  exact noncollinear_of_witness' hP1 hAB hAℓ hBℓ hC_not_ℓ
-
-lemma line_eq_of_point_eq
-    (hP1 : P1 (G := G)) {A P : G.Point} (hA_ne_P : A ≠ P) {ℓ m : G.Line}
-    (hAℓ : A ∈ᵢ ℓ) (hPℓ : P ∈ᵢ ℓ) (hAm : A ∈ᵢ m) (hPm : P ∈ᵢ m) : ℓ = m := by
-  obtain ⟨l, _, huniq⟩ := hP1 hA_ne_P
-  have hℓ : ℓ = l := huniq ℓ ⟨hAℓ, hPℓ⟩
-  have hm : m = l := huniq m ⟨hAm, hPm⟩
-  trans l
-  · exact hℓ
-  · exact hm.symm
 
 lemma point_eq_of_incident
-    (hP2 : P2 (G := G)) {ℓ m : G.Line} (hℓm : ℓ ≠ m)
-    {P Q : G.Point} (hPℓ : P ∈ᵢ ℓ) (hPm : P ∈ᵢ m)
-    (hQℓ : Q ∈ᵢ ℓ) (hQm : Q ∈ᵢ m) : P = Q :=
-  line_eq_of_point_eq (G := G.dual) (hP1 := hP2) (A := ℓ) (P := m) (ℓ := P) (m := Q)
-    hℓm hPℓ hPm hQℓ hQm
+    (hP2 : P2 (G := G)) (hℓm : ℓ ≠ m) (hAℓ : A ∈ᵢ ℓ) (hAm : A ∈ᵢ m)
+    (hBℓ : B ∈ᵢ ℓ) (hBm : B ∈ᵢ m) : A = B :=
+  line_eq_of_point_eq (G := G.dual) (hP1 := hP2) hℓm hAℓ hAm hBℓ hBm
 
-lemma line_ne_of_noncollinear {A B C : G.Point} {ℓ₁ ℓ₂ : G.Line}
-    (hABC  : noncollinear A B C) (hAℓ₁  : A ∈ᵢ ℓ₁) (hBℓ₁ : B ∈ᵢ ℓ₁) (hCℓ₂ : C ∈ᵢ ℓ₂) : ℓ₁ ≠ ℓ₂ := by
+lemma line_ne_of_noncollinear
+    (hABC  : noncollinear A B C) (hAℓ  : A ∈ᵢ ℓ) (hBℓ : B ∈ᵢ ℓ) (hCm : C ∈ᵢ m) : ℓ ≠ m := by
   rintro rfl
-  apply hABC; use ℓ₁; simp [collinear, triSet]
-  exact ⟨hAℓ₁, hBℓ₁, hCℓ₂⟩
+  apply hABC; use ℓ; simp [collinear, triSet]
+  exact ⟨hAℓ, hBℓ, hCm⟩
 
-lemma points_distinct_of_noncollinear (hP1 : P1 (G := G)) {A B C P Q : G.Point}
+lemma points_distinct_of_noncollinear (hP1 : P1 (G := G)) {P Q : G.Point}
     (hABC : noncollinear A B C) (hA_ne_P : A ≠ P) {mB mC : G.Line}
     (hAmB : A ∈ᵢ mB) (hBmB : B ∈ᵢ mB) (_ : A ∈ᵢ mC) (hCmC : C ∈ᵢ mC)
     (_ : P ∈ᵢ mB) (_ : Q ∈ᵢ mC) : P ≠ Q := by
@@ -148,19 +160,19 @@ lemma points_distinct_of_noncollinear (hP1 : P1 (G := G)) {A B C P Q : G.Point}
 
 
 
-lemma nonconcurrent_chain (hP2 : P2 (G := G)) (hPQ : P ≠ Q) (h₁ : l ≠ m) (h₂ : m ≠ n)
-    (h₃ : P ∈ᵢ l) (h₄ : P ∈ᵢ m) (h₅ : Q ∈ᵢ n) (h₆ : Q ∈ᵢ m) : noncollinear (G:= G.dual) l m n := by
-  suffices h_no_common : ¬ ∃ A : G.Point, A ∈ᵢ l ∧ A ∈ᵢ m ∧ A ∈ᵢ n by
+lemma nonconcurrent_chain (hP2 : P2 (G := G)) (hAB : A ≠ B) (h₁ : ℓ ≠ m) (h₂ : m ≠ n)
+    (h₃ : A ∈ᵢ ℓ) (h₄ : A ∈ᵢ m) (h₅ : B ∈ᵢ n) (h₆ : B ∈ᵢ m) : noncollinear (G:= G.dual) ℓ m n := by
+  suffices h_no_common : ¬ ∃ A' : G.Point, A' ∈ᵢ ℓ ∧ A' ∈ᵢ m ∧ A' ∈ᵢ n by
     simpa [noncollinear, collinear, triSet] using h_no_common
   intro ⟨A', _, _, _⟩
-  apply hPQ
-  calc P
-    _ = A' := by symm; apply point_eq_of_incident (ℓ:= l) (m:=m) (P:=A') (Q:=P) <;> assumption
-    _ = Q := by apply point_eq_of_incident (ℓ:= m) (m:=n) (P:=A') (Q:=Q) <;> assumption
+  apply hAB
+  calc A
+    _ = A' := by symm; apply point_eq_of_incident (ℓ:= ℓ) (m:=m) (A:=A') (B:=A) <;> assumption
+    _ = B := by apply point_eq_of_incident (ℓ:= m) (m:=n) (A:=A') (B:=B) <;> assumption
 
 
-lemma noncollinear_of_line_through_AB_not_C (hP1 : P1 (G := G)) {A B C : G.Point} (hAB : A ≠ B)
-    {ℓ : G.Line} (hAℓ : A ∈ᵢ ℓ) (hBℓ : B ∈ᵢ ℓ) (hC_not_ℓ : ¬ C ∈ᵢ ℓ) : noncollinear A B C := by
+lemma noncollinear_of_line_through_AB_not_C (hP1 : P1 (G := G)) (hAB : A ≠ B)
+    (hAℓ : A ∈ᵢ ℓ) (hBℓ : B ∈ᵢ ℓ) (hC_not_ℓ : ¬ C ∈ᵢ ℓ) : noncollinear A B C := by
   intro hCol
   simp [triSet, collinear] at hCol
   rcases hCol with ⟨m, _, _, hCm⟩
@@ -171,8 +183,8 @@ lemma noncollinear_of_line_through_AB_not_C (hP1 : P1 (G := G)) {A B C : G.Point
 
 
 
-lemma three_points_on_line (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G))
-    (ℓ : G.Line) : ∃ p q r : G.Point, p ≠ q ∧ p ≠ r ∧ q ≠ r ∧ p ∈ᵢ ℓ ∧ q ∈ᵢ ℓ ∧ r ∈ᵢ ℓ := by
+lemma three_points_on_line (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G)) (ℓ : G.Line) :
+    ∃ P Q R : G.Point, P ≠ Q ∧ P ≠ R ∧ Q ≠ R ∧ P ∈ᵢ ℓ ∧ Q ∈ᵢ ℓ ∧ R ∈ᵢ ℓ := by
   rcases hP3' with
     ⟨A,B,C,D,
      hAB,hAC,hAD,hBC,hBD,hCD,
@@ -256,10 +268,9 @@ lemma P3'_dual_of_P3'
     exact nonconcurrent_chain hP2 hCD ℓAC_ne_ℓCD ℓBD_ne_ℓCD.symm hAℓAC.2 hCℓCD.1 hBℓBD.2 hCℓCD.2
 
 
-lemma three_lines_through_point (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G))
-    (p : G.Point) :
-    ∃ ℓ m n : G.Line, ℓ ≠ m ∧ ℓ ≠ n ∧ m ≠ n ∧ p ∈ᵢ ℓ ∧ p ∈ᵢ m ∧ p ∈ᵢ n :=
-  three_points_on_line (G := G.dual) hP2 hP1 (P3'_dual_of_P3' hP1 hP2 hP3') p
+lemma three_lines_through_point (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G)) (A : G.Point) :
+  ∃ ℓ m n : G.Line, ℓ ≠ m ∧ ℓ ≠ n ∧ m ≠ n ∧ A ∈ᵢ ℓ ∧ A ∈ᵢ m ∧ A ∈ᵢ n :=
+  three_points_on_line (G := G.dual) hP2 hP1 (P3'_dual_of_P3' hP1 hP2 hP3') A
 
 
 
@@ -267,16 +278,36 @@ end FromP3'
 
 section FromP3''
 open IncidenceGeometry ProjectivePrereqs AlternativeAxioms
-variable {G : IncidenceGeometry}
+variable {G : IncidenceGeometry} {A : G.Point} {ℓ m: G.Line}
+
+lemma exists_line_with_point_and_nonpoint (hP3'' : P3'' (G := G)) : ∃ ℓ : G.Line, ∃ A B, A ∈ᵢ ℓ ∧ ¬B ∈ᵢ ℓ := by
+  rcases hP3'' with ⟨⟨A, ℓ₀, hAℓ₀⟩, hOff⟩
+  rcases hOff ℓ₀ ℓ₀ with ⟨B, hBℓ₀, _⟩
+  exact ⟨ℓ₀, A, B, hAℓ₀, hBℓ₀⟩
 
 lemma two_distinct_lines (hP1 : P1 (G := G)) (hP3'' : P3'' (G := G)): ∃ ℓ m : G.Line, ℓ ≠ m := by
-  rcases hP3'' with ⟨⟨p₀, ℓ₀, _⟩, hOff⟩
-  rcases hOff ℓ₀ ℓ₀ with ⟨q, hqℓ₀, _⟩
-  have hpq : p₀ ≠ q := by rintro rfl; contradiction
-  rcases hP1 hpq with ⟨m, ⟨_, hqm⟩, _⟩
-  use ℓ₀, m
-  show ℓ₀ ≠ m
-  rintro rfl; contradiction
+  rcases exists_line_with_point_and_nonpoint hP3'' with ⟨ℓ, A, B, hAℓ, hBnotℓ⟩
+  have hBA : B ≠ A := point_ne_of_mem_not_mem hBnotℓ hAℓ
+  rcases hP1 hBA.symm with ⟨m, ⟨_, hBm : B ∈ᵢ m⟩, _⟩
+  use m, ℓ
+  show m ≠ ℓ
+  exact line_ne_of_mem_not_mem hBm hBnotℓ
+
+lemma exists_line_through_point_off (hP1 : P1 (G := G)) (hP3'' : P3'' (G := G))
+    (hAℓ : A ∈ᵢ ℓ) : ∃ m : G.Line, A ∈ᵢ m ∧ m ≠ ℓ := by
+  rcases hP3''.2 ℓ ℓ with ⟨Q, hQℓ, _⟩
+  have hAQ : Q ≠ A := point_ne_of_mem_not_mem hQℓ hAℓ
+  rcases hP1 hAQ.symm with ⟨r, ⟨hAr, hQr⟩, _⟩
+  exact ⟨r, hAr, line_ne_of_mem_not_mem hQr hQℓ⟩
+
+lemma exists_third_line_through_point_off_two
+    (hP1 : P1 (G := G)) (hP3'' : P3'' (G := G))
+    (hAℓ : A ∈ᵢ ℓ) : ∃ n : G.Line, A ∈ᵢ n ∧ n ≠ ℓ ∧ n ≠ m := by
+  rcases hP3''.2 ℓ m with ⟨B, hBℓ, hBm⟩
+  have hAQ : B ≠ A := point_ne_of_mem_not_mem hBℓ hAℓ
+  rcases hP1 hAQ with ⟨n, ⟨hAn, hQn⟩, _⟩
+  refine ⟨n, hQn, ?_, ?_⟩
+  <;> apply line_ne_of_mem_not_mem hAn <;> assumption
 
 
 lemma P3'_of_P3''
@@ -284,91 +315,44 @@ lemma P3'_of_P3''
     P3' (G := G) := by
   obtain ⟨ℓ, m, hℓm⟩ := two_distinct_lines (G := G) hP1 hP3''
   obtain ⟨B, ⟨hBℓ, hBm⟩, hBuniq⟩ := hP2 hℓm
-
   rcases hP3''.2 ℓ m with ⟨A, hAℓ, hAm⟩
-  have hAB : A ≠ B := by rintro rfl; exact hAℓ hBℓ
+  have hAB : A ≠ B := point_ne_of_mem_not_mem hAℓ hBℓ
 
   obtain ⟨n, ⟨hAn, hBn⟩, huniq_n⟩ := hP1 hAB
 
-  rcases hP3''.2 n n with ⟨Q₁, hQ₁n, _⟩
-  have hAQ₁ : A ≠ Q₁ := by rintro rfl; exact hQ₁n hAn
-  obtain ⟨r, ⟨hAr, hQ₁r⟩, huniq_r⟩ := hP1 hAQ₁
-  have hr_ne_n : r ≠ n := by rintro rfl; contradiction
+  obtain ⟨r, hAr, hr_ne_n⟩ := exists_line_through_point_off (G := G) hP1 hP3'' hAn
+  obtain ⟨s, hAs, hs_ne_n, hs_ne_r⟩ := exists_third_line_through_point_off_two hP1 hP3'' hAn (m:=r)
 
-  rcases hP3''.2 n r with ⟨Q₂, hQ₂n, hQ₂r⟩
-  have hAQ₂ : A ≠ Q₂ := by rintro rfl; contradiction
-  obtain ⟨s, ⟨hAs, hQ₂s⟩, huniq_s⟩ := hP1 hAQ₂
-  have hs_ne_n : s ≠ n := by rintro rfl; contradiction
-  have hs_ne_r : s ≠ r := by rintro rfl; contradiction
+  have hr_ne_ℓ : r ≠ ℓ := line_ne_of_mem_not_mem hAr hAℓ
+  obtain ⟨C, ⟨hCr, hCℓ⟩, _⟩ := hP2 hr_ne_ℓ
 
-  have hr_ne_ℓ : r ≠ ℓ := by rintro rfl; contradiction
-  obtain ⟨C, ⟨hCr, hCℓ⟩, hCuniq⟩ := hP2 hr_ne_ℓ
+  have hs_ne_m : s ≠ m := line_ne_of_mem_not_mem hAs hAm
+  obtain ⟨D, ⟨hDs, hDm⟩, _⟩ := hP2 hs_ne_m
 
-  have hs_ne_m : s ≠ m := by rintro rfl; contradiction
-  obtain ⟨D, ⟨hDs, hDm⟩, hDuniq⟩ := hP2 hs_ne_m
+  have hAC : A ≠ C := point_ne_of_mem_not_mem hAℓ hCℓ
+  have hAD : A ≠ D := point_ne_of_mem_not_mem hAm hDm
 
-  -- basic distinctness
-  have hAC : A ≠ C := by rintro rfl; exact hAℓ hCℓ
-  have hAD : A ≠ D := by rintro rfl; exact hAm hDm
+  have hBr : ¬ B ∈ᵢ r := not_mem_of_line_ne hP1 hAB hAn hBn hAr hr_ne_n.symm
+  have hBs : ¬ B ∈ᵢ s := not_mem_of_line_ne hP1 hAB hAn hBn hAs hs_ne_n.symm
 
-  have hBr : ¬ B ∈ᵢ r := by
-    intro hB_r
-    have : r = n :=
-      line_eq_of_point_eq (G := G) (hP1 := hP1)
-        (A := A) (P := B) (ℓ := r) (m := n) hAB hAr hB_r hAn hBn
-    exact hr_ne_n this
-  have hBs : ¬ B ∈ᵢ s := by
-    intro hB_s
-    have : s = n :=
-      line_eq_of_point_eq (G := G) (hP1 := hP1)
-        (A := A) (P := B) (ℓ := s) (m := n) hAB hAs hB_s hAn hBn
-    exact hs_ne_n this
-
-  have hBC : B ≠ C := by rintro rfl; contradiction
-  have hBD : B ≠ D := by rintro rfl; contradiction
+  have hBC : B ≠ C := point_ne_of_mem_not_mem hBr hCr
+  have hBD : B ≠ D := point_ne_of_mem_not_mem hBs hDs
 
   have hCD : C ≠ D := by
     rintro rfl
     have : C = B := hBuniq C ⟨hCℓ, hDm⟩
-    subst C; contradiction
+    exact hBC this.symm
 
-  -- show C ∉ n
-  have hCnotn : ¬ C ∈ᵢ n := by
-    intro hCn
-    have : r = n :=
-      line_eq_of_point_eq (G := G) (hP1 := hP1)
-        (A := A) (P := C) (ℓ := r) (m := n) hAC hAr hCr hAn hCn
-    exact hr_ne_n this
+  have hCnotn : ¬ C ∈ᵢ n := not_mem_of_line_ne hP1 hAC hAr hCr hAn hr_ne_n
+  have hDnotn : ¬ D ∈ᵢ n := not_mem_of_line_ne hP1 hAD hAs hDs hAn hs_ne_n
+  have hDnotr : ¬ D ∈ᵢ r := not_mem_of_line_ne hP1 hAD hAs hDs hAr hs_ne_r
+  have hDnotℓ : ¬ D ∈ᵢ ℓ := not_mem_of_line_ne hP1 hBD hBm hDm hBℓ hℓm.symm
 
-  -- show D ∉ n
-  have hDnotn : ¬ D ∈ᵢ n := by
-    intro hDn
-    have : s = n :=
-      line_eq_of_point_eq (G := G) (hP1 := hP1)
-        (A := A) (P := D) (ℓ := s) (m := n) hAD hAs hDs hAn hDn
-    exact hs_ne_n this
-
-  -- show D ∉ r and D ∉ ℓ
-  have hDnotr : ¬ D ∈ᵢ r := by
-    intro hDr; apply hs_ne_r.symm
-    show r = s
-    exact
-      line_eq_of_point_eq (G := G) (hP1 := hP1)
-        (A := A) (P := D) (ℓ := r) (m := s) hAD hAr hDr hAs hDs
-  have hDnotℓ : ¬ D ∈ᵢ ℓ := by
-    intro hDℓ
-    have hDB : D = B := hBuniq D ⟨hDℓ, hDm⟩
-    subst B; contradiction
-
-  -- assemble the four noncollinearities via the helper lemma
-  have hABC : noncollinear (G := G) A B C :=
-    noncollinear_of_line_through_AB_not_C (G := G) hP1 hAB hAn hBn hCnotn
-  have hABD : noncollinear (G := G) A B D :=
-    noncollinear_of_line_through_AB_not_C (G := G) hP1 hAB hAn hBn hDnotn
-  have hACD : noncollinear (G := G) A C D := by
-    exact noncollinear_of_line_through_AB_not_C (G := G) hP1 hAC hAr hCr hDnotr
-  have hBCD : noncollinear (G := G) B C D := by
-    exact noncollinear_of_line_through_AB_not_C (G := G) hP1 hBC hBℓ hCℓ hDnotℓ
+  -- assemble noncollinearities (as you already do)
+  have hABC : noncollinear A B C := noncollinear_of_line_through_AB_not_C hP1 hAB hAn hBn hCnotn
+  have hABD : noncollinear A B D := noncollinear_of_line_through_AB_not_C hP1 hAB hAn hBn hDnotn
+  have hACD : noncollinear A C D := noncollinear_of_line_through_AB_not_C hP1 hAC hAr hCr hDnotr
+  have hBCD : noncollinear B C D := noncollinear_of_line_through_AB_not_C hP1 hBC hBℓ hCℓ hDnotℓ
 
   exact
     ⟨A, B, C, D,

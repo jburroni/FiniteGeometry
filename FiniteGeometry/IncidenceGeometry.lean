@@ -114,4 +114,14 @@ end Subgeometry
 
 end ExtraDefinitions
 
+section BasicLemmas
+variable {G : IncidenceGeometry} {ℓ m : G.Line} {A B : G.Point}
+
+lemma line_ne_of_mem_not_mem (hAℓ : A ∈ᵢ ℓ) (hAnotm : ¬ A ∈ᵢ m) : ℓ ≠ m := by
+  rintro rfl; contradiction
+
+lemma point_ne_of_mem_not_mem (hAnot : ¬ A ∈ᵢ ℓ) (hB : B ∈ᵢ ℓ) : A ≠ B := by
+  rintro rfl; contradiction
+end BasicLemmas
+
 end IncidenceGeometry
