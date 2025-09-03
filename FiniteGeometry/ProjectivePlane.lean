@@ -16,21 +16,25 @@ variable {G : IncidenceGeometry}
 end ProjectivePrereqs
 
 class ProjectivePlane (G : IncidenceGeometry) : Prop where
+  P0 : Nonempty G.Point
+  P0' : Nonempty G.Line
   P1 : ProjectivePrereqs.P1 (G := G)
   P2 : ProjectivePrereqs.P2 (G := G)
   P3 :
     ∀ ℓ : G.Line,
-      ∃ p q r : G.Point,
-        p ≠ q ∧ p ≠ r ∧ q ≠ r ∧
-        p ∈ᵢ ℓ ∧ q ∈ᵢ ℓ ∧ r ∈ᵢ ℓ
+      ∃ A B C : G.Point,
+        A ≠ B ∧ A ≠ C ∧ B ≠ C ∧
+        A ∈ᵢ ℓ ∧ B ∈ᵢ ℓ ∧ C ∈ᵢ ℓ
   P4 :
-    ∀ p : G.Point,
+    ∀ A : G.Point,
       ∃ ℓ m n : G.Line,
         ℓ ≠ m ∧ ℓ ≠ n ∧ m ≠ n ∧
-        p ∈ᵢ ℓ ∧ p ∈ᵢ m ∧ p ∈ᵢ n
+        A ∈ᵢ ℓ ∧ A ∈ᵢ m ∧ A ∈ᵢ n
 
 
 instance dual_projective (G : IncidenceGeometry) [ProjectivePlane G] : ProjectivePlane G.dual where
+  P0 := ProjectivePlane.P0'
+  P0' := ProjectivePlane.P0
   P1 := ProjectivePlane.P2
   P2 := ProjectivePlane.P1
   P3 := ProjectivePlane.P4
@@ -40,8 +44,8 @@ namespace ProjectivePrereqs
 variable {G : IncidenceGeometry} {A B C : G.Point} {ℓ m: G.Line}
 
 noncomputable
-def line_through {p q : G.Point} (hpq : p ≠ q) (hP1 : P1 (G:=G)) : G.Line :=
-  Classical.choose (hP1 hpq)
+def line_through (hAB : A ≠ B) (hP1 : P1 (G:=G)) : G.Line :=
+  Classical.choose (hP1 hAB)
 
 lemma line_through_unique
     {p q : G.Point} (hpq : p ≠ q) (hP1 : P1 (G:=G)) {ℓ : G.Line} (hpℓ : p ∈ᵢ ℓ) (hqℓ : q ∈ᵢ ℓ) :
@@ -183,8 +187,8 @@ lemma noncollinear_of_line_through_AB_not_C (hP1 : P1 (G := G)) (hAB : A ≠ B)
 
 
 
-lemma three_points_on_line (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G)) (ℓ : G.Line) :
-    ∃ P Q R : G.Point, P ≠ Q ∧ P ≠ R ∧ Q ≠ R ∧ P ∈ᵢ ℓ ∧ Q ∈ᵢ ℓ ∧ R ∈ᵢ ℓ := by
+lemma three_points_on_line (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G))
+    (ℓ : G.Line) : ∃ P Q R : G.Point, P ≠ Q ∧ P ≠ R ∧ Q ≠ R ∧ P ∈ᵢ ℓ ∧ Q ∈ᵢ ℓ ∧ R ∈ᵢ ℓ := by
   rcases hP3' with
     ⟨A,B,C,D,
      hAB,hAC,hAD,hBC,hBD,hCD,
@@ -273,12 +277,20 @@ lemma three_lines_through_point (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : 
   three_points_on_line (G := G.dual) hP2 hP1 (P3'_dual_of_P3' hP1 hP2 hP3') A
 
 
+lemma point_from_P3' (hP3' : P3' (G := G)) : Nonempty G.Point := by
+  obtain ⟨A, _⟩ := hP3'
+  exact ⟨A⟩
 
+lemma line_from_P1_P3' (hP1 : ProjectivePrereqs.P1 (G := G)) (hP3' : P3' (G := G)) :
+    Nonempty G.Line := by
+  rcases hP3' with ⟨_, _, _, _, hAB, _⟩
+  rcases hP1 hAB with ⟨ℓ, _⟩
+  exact ⟨ℓ⟩
 end FromP3'
 
 section FromP3''
 open IncidenceGeometry ProjectivePrereqs AlternativeAxioms
-variable {G : IncidenceGeometry} {A : G.Point} {ℓ m: G.Line}
+variable {G : IncidenceGeometry} {A B C: G.Point} {ℓ m: G.Line}
 
 lemma exists_line_with_point_and_nonpoint (hP3'' : P3'' (G := G)) : ∃ ℓ : G.Line, ∃ A B, A ∈ᵢ ℓ ∧ ¬B ∈ᵢ ℓ := by
   rcases hP3'' with ⟨⟨A, ℓ₀, hAℓ₀⟩, hOff⟩
@@ -375,15 +387,20 @@ theorem lemma_1_2_5 (G : IncidenceGeometry) :
     cases hAlt with
     | inl hP3' =>
         exact
-        { P1 := hP1,
+        { P0 := point_from_P3' hP3',
+          P0' := line_from_P1_P3' hP1 hP3',
+          P1 := hP1,
           P2 := hP2,
           P3 := three_points_on_line  hP1 hP2 hP3',
           P4 := three_lines_through_point hP1 hP2 hP3'}
     | inr hP3'' =>
+        have hP3' : P3' := P3'_of_P3'' hP1 hP2 hP3''
         exact
-        { P1 := hP1,
+        { P0 := point_from_P3' hP3',
+          P0' := line_from_P1_P3' hP1 hP3',
+          P1 := hP1,
           P2 := hP2,
-          P3 := three_points_on_line hP1 hP2 (P3'_of_P3'' hP1 hP2 hP3''),
-          P4 := three_lines_through_point hP1 hP2 (P3'_of_P3'' hP1 hP2 hP3'') }
+          P3 := three_points_on_line hP1 hP2 hP3',
+          P4 := three_lines_through_point hP1 hP2 hP3' }
 
 end AlternativeAxioms
