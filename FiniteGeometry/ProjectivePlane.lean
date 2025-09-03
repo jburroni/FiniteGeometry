@@ -17,7 +17,6 @@ end ProjectivePrereqs
 
 class ProjectivePlane (G : IncidenceGeometry) : Prop where
   P0 : Nonempty G.Point
-  P0' : Nonempty G.Line
   P1 : ProjectivePrereqs.P1 (G := G)
   P2 : ProjectivePrereqs.P2 (G := G)
   P3 :
@@ -31,10 +30,13 @@ class ProjectivePlane (G : IncidenceGeometry) : Prop where
         ℓ ≠ m ∧ ℓ ≠ n ∧ m ≠ n ∧
         A ∈ᵢ ℓ ∧ A ∈ᵢ m ∧ A ∈ᵢ n
 
+theorem P0' {G : IncidenceGeometry} [ProjectivePlane G]: Nonempty G.Line := by
+  obtain ⟨O⟩ := ProjectivePlane.P0 (G := G)
+  rcases ProjectivePlane.P4 O with ⟨a, -⟩
+  use a
 
 instance dual_projective (G : IncidenceGeometry) [ProjectivePlane G] : ProjectivePlane G.dual where
-  P0 := ProjectivePlane.P0'
-  P0' := ProjectivePlane.P0
+  P0 := P0'
   P1 := ProjectivePlane.P2
   P2 := ProjectivePlane.P1
   P3 := ProjectivePlane.P4
@@ -388,7 +390,6 @@ theorem lemma_1_2_5 (G : IncidenceGeometry) :
     | inl hP3' =>
         exact
         { P0 := point_from_P3' hP3',
-          P0' := line_from_P1_P3' hP1 hP3',
           P1 := hP1,
           P2 := hP2,
           P3 := three_points_on_line  hP1 hP2 hP3',
@@ -397,7 +398,6 @@ theorem lemma_1_2_5 (G : IncidenceGeometry) :
         have hP3' : P3' := P3'_of_P3'' hP1 hP2 hP3''
         exact
         { P0 := point_from_P3' hP3',
-          P0' := line_from_P1_P3' hP1 hP3',
           P1 := hP1,
           P2 := hP2,
           P3 := three_points_on_line hP1 hP2 hP3',
