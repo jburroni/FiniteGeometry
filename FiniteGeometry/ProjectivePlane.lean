@@ -102,18 +102,31 @@ lemma line_eq_of_point_eq
     (hP1 : P1 (G := G)) (hA_ne_B : A ≠ B)
     (hAℓ : A ∈ᵢ ℓ) (hBℓ : B ∈ᵢ ℓ) (hAm : A ∈ᵢ m) (hBm : B ∈ᵢ m) : ℓ = m := by
   obtain ⟨l, _, huniq⟩ := hP1 hA_ne_B
-  have hℓ : ℓ = l := huniq ℓ ⟨hAℓ, hBℓ⟩
-  have hm : m = l := huniq m ⟨hAm, hBm⟩
-  trans l
-  · exact hℓ
-  · exact hm.symm
+  calc ℓ
+    _ = l := huniq ℓ ⟨hAℓ, hBℓ⟩
+    _ = m := (huniq m ⟨hAm, hBm⟩).symm
+
+
+lemma point_eq_of_incident (hP2 : P2 (G := G)) (hℓm : ℓ ≠ m) (hAℓ : A ∈ᵢ ℓ) (hAm : A ∈ᵢ m)
+    (hBℓ : B ∈ᵢ ℓ) (hBm : B ∈ᵢ m) : A = B :=
+  line_eq_of_point_eq (G := G.dual) (hP1 := hP2) hℓm hAℓ hAm hBℓ hBm
 
 lemma not_mem_of_line_ne (hP1 : P1 (G := G)) (hAB : A ≠ B)
     (hAℓ : A ∈ᵢ ℓ) (hBℓ : B ∈ᵢ ℓ) (hAm : A ∈ᵢ m) (hne : ℓ ≠ m) :
     ¬ B ∈ᵢ m := by
   intro hBm
   have : ℓ = m := line_eq_of_point_eq (G := G) (hP1 := hP1) hAB hAℓ hBℓ hAm hBm
-  exact hne this
+  contradiction
+
+lemma ne_of_distinct_lines_through_O (hP2 : P2 (G:=G)) {O : G.Point}
+    (hℓm : ℓ ≠ m) (hOℓ : O ∈ᵢ ℓ) (hOm : O ∈ᵢ m)
+    (hAℓ : A ∈ᵢ ℓ) (hBm : B ∈ᵢ m) (hA_ne_O : A ≠ O) : A ≠ B := by
+  intro hAB
+  have hAm : A ∈ᵢ m := by subst A; assumption
+  have : A = O := point_eq_of_incident hP2 hℓm hAℓ hAm hOℓ hOm
+  contradiction
+
+
 
 end ProjectivePrereqs
 
@@ -144,10 +157,6 @@ variable (hP1 : P1 (G := G)) (hP2 : P2 (G := G)) (hP3' : P3' (G := G))
 
 
 
-lemma point_eq_of_incident
-    (hP2 : P2 (G := G)) (hℓm : ℓ ≠ m) (hAℓ : A ∈ᵢ ℓ) (hAm : A ∈ᵢ m)
-    (hBℓ : B ∈ᵢ ℓ) (hBm : B ∈ᵢ m) : A = B :=
-  line_eq_of_point_eq (G := G.dual) (hP1 := hP2) hℓm hAℓ hAm hBℓ hBm
 
 lemma line_ne_of_noncollinear
     (hABC  : noncollinear A B C) (hAℓ  : A ∈ᵢ ℓ) (hBℓ : B ∈ᵢ ℓ) (hCm : C ∈ᵢ m) : ℓ ≠ m := by
@@ -375,6 +384,41 @@ lemma P3'_of_P3''
 
 
 end FromP3''
+
+section FromProjectivePlane
+
+variable {G : IncidenceGeometry} [ProjectivePlane G]
+variable {ℓ m : G.Line} {A B : G.Point}
+
+lemma exists_point_ne_O_on_line
+    (O : G.Point) (ℓ : G.Line) : ∃ A : G.Point, A ∈ᵢ ℓ ∧ A ≠ O := by
+  rcases ProjectivePlane.P3 (G := G) ℓ with
+    ⟨X, Y, Z, -, _, -, hXℓ, hYℓ, hZℓ⟩
+  by_cases hX : X = O
+  · by_cases hY : Y = O
+    · have hZne : Z ≠ O := by
+        intro
+        have : X = Z := by subst Z; assumption
+        contradiction
+      exact ⟨Z, hZℓ, hZne⟩
+    · exact ⟨Y, hYℓ, hY⟩
+  · exact ⟨X, hXℓ, hX⟩
+
+
+
+
+lemma two_points_on_line_away_from_O {O : G.Point}
+    {ℓ m : G.Line}
+    (hℓm : ℓ ≠ m) (hOℓ : O ∈ᵢ ℓ) (hOm : O ∈ᵢ m) :
+    ∃ A B : G.Point, A ≠ B ∧ A ∈ᵢ ℓ ∧ B ∈ᵢ m ∧ A ≠ O ∧ B ≠ O := by
+  obtain ⟨A, hAℓ, hA_ne_O⟩ := exists_point_ne_O_on_line (G := G) O ℓ
+  obtain ⟨B, hBm, hB_ne_O⟩ := exists_point_ne_O_on_line (G := G) O m
+  have hAB : A ≠ B :=
+    ne_of_distinct_lines_through_O (G := G) (hP2 := ProjectivePlane.P2 (G := G))
+      hℓm hOℓ hOm hAℓ hBm hA_ne_O
+  exact ⟨A, B, hAB, hAℓ, hBm, hA_ne_O, hB_ne_O⟩
+
+end FromProjectivePlane
 
 open ProjectivePrereqs AlternativeAxioms
 
