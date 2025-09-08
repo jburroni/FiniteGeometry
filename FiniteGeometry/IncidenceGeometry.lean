@@ -4,6 +4,7 @@ import Mathlib.Data.Finset.Defs
 import Mathlib.Data.Finset.Card
 import Mathlib.Data.Finset.Basic
 import Mathlib.Data.Fintype.Basic
+import FiniteGeometry.Finset
 
 
 structure IncidenceGeometry where
@@ -118,20 +119,11 @@ end Subgeometry
 end ExtraDefinitions
 
 section BasicLemmas
-open scoped Finset
-variable {G : IncidenceGeometry} [DecidableEq G.Point] {ℓ m : G.Line} {A B : G.Point}
+open Finset
+variable {G : IncidenceGeometry} {ℓ m : G.Line} {A B : G.Point}
 
-open scoped Finset
 
-lemma card_finset_three {α : Type*} [DecidableEq α] {A B C : α} (hAB : A ≠ B) (hAC : A ≠ C)
-    (hBC : B ≠ C) : #({A, B, C} : Finset α) = 3 := by
-  rw [Finset.card_insert_of_notMem, Finset.card_insert_of_notMem, Finset.card_singleton]
-  · show B ∉ {C}
-    simp [hBC]
-  · show  A ∉ {B, C}
-    simp [hAB, hAC]
-
-lemma generalPosition_spec
+lemma generalPosition_spec [DecidableEq G.Point]
     (S : Set G.Point) (A B C : G.Point) (hA : A ∈ S) (hB : B ∈ S)
     (hC : C ∈ S) (hAB : A ≠ B) (hAC : A ≠ C) (hBC : B ≠ C) :
     generalPosition S → ¬ collinear ({A, B, C} : Set G.Point) := by
