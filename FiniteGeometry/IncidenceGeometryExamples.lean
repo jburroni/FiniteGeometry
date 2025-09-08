@@ -94,11 +94,10 @@ lemma exists_unique_disjoint_line (p : affineAG22.Point) (b :affineAG22.Line) (h
   let known_points : Finset affineAG22.Point := {p, q₁, q₂}
   let remaining := (univ : Finset affineAG22.Point) \ known_points
   have h_remaining_card : #remaining = 1 := by
-    have h_known_card : #known_points = 3 := by
-      show #({p, q₁, q₂} : Finset affineAG22.Point) = 3
-      rw [Finset.card_insert_of_notMem, Finset.card_insert_of_notMem, Finset.card_singleton]
-      · simp [h_neq]
-      · simp [p_ne_q₁, p_ne_q₂]
+    have h_known_card : #known_points = 3 :=
+      IncidenceGeometry.card_finset_three
+        (α := affineAG22.Point) (A := p) (B := q₁) (C := q₂)
+        p_ne_q₁ p_ne_q₂ h_neq
     have h_univ_card : #(Finset.univ : Finset affineAG22.Point) = 4 := by rfl
     simp [remaining, Finset.card_sdiff, h_univ_card, h_known_card]
 
