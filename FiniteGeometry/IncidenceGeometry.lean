@@ -129,8 +129,9 @@ lemma generalPosition_spec [DecidableEq G.Point]
     generalPosition S → ¬ collinear ({A, B, C} : Set G.Point) := by
   intro hGP
   set T : Finset G.Point := {A, B, C} with hT
-  have : #T = 3 := card_finset_three hAB hAC hBC
-  have hSub : (T : Set G.Point) ⊆ S := by
+  suffices h: ¬collinear (T : Set G.Point) by simpa [hT] using h
+  apply hGP T
+  · show (T : Set G.Point) ⊆ S
     intro x hx
     have hx₁ := Finset.mem_insert.mp hx
     cases hx₁ with
@@ -143,11 +144,9 @@ lemma generalPosition_spec [DecidableEq G.Point]
         | inr hxC' =>
             have hxC : x = C := Finset.mem_singleton.mp hxC'
             rw [hxC]; assumption
+  · show #T = 3
+    exact card_finset_three hAB hAC hBC
 
-
-  have : ¬ collinear (T : Set G.Point) :=
-    hGP T hSub this
-  simpa [hT] using this
 
 lemma quad_rule (A B C D : G.Point) :
   quad A B C D ↔
