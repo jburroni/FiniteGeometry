@@ -1,12 +1,7 @@
 import FiniteGeometry.IncidenceGeometry
 
 
-namespace Finset
-open Finset
-variable {α : Type*} [Fintype α] [DecidableEq α]
-theorem mem_compl_singleton {a b : α} : a ∈ ({b}ᶜ : Finset α) ↔ a ≠ b := by
-  simp only [mem_compl, mem_singleton, ne_eq]
-end Finset
+
 
 section Examples
 -- To avoid linter warnings when simpa is applied to many goals
@@ -94,10 +89,7 @@ lemma exists_unique_disjoint_line (p : affineAG22.Point) (b :affineAG22.Line) (h
   let known_points : Finset affineAG22.Point := {p, q₁, q₂}
   let remaining := (univ : Finset affineAG22.Point) \ known_points
   have h_remaining_card : #remaining = 1 := by
-    have h_known_card : #known_points = 3 :=
-      IncidenceGeometry.card_finset_three
-        (α := affineAG22.Point) (A := p) (B := q₁) (C := q₂)
-        p_ne_q₁ p_ne_q₂ h_neq
+    have h_known_card : #known_points = 3 := card_finset_three p_ne_q₁ p_ne_q₂ h_neq
     have h_univ_card : #(Finset.univ : Finset affineAG22.Point) = 4 := by rfl
     simp [remaining, Finset.card_sdiff, h_univ_card, h_known_card]
 
