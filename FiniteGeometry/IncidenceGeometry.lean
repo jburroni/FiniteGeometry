@@ -120,9 +120,13 @@ end ExtraDefinitions
 
 section BasicLemmas
 open Finset
-variable {G : IncidenceGeometry} {ℓ m : G.Line} {A B : G.Point}
+variable {G : IncidenceGeometry} {ℓ m : G.Line} {A B C : G.Point}
 
-lemma generalPosition_spec [DecidableEq G.Point]
+
+section DecidablePoint
+variable [DecidableEq G.Point]
+
+lemma generalPosition_spec
     (S : Set G.Point) (A B C : G.Point) (hA : A ∈ S) (hB : B ∈ S)
     (hC : C ∈ S) (hAB : A ≠ B) (hAC : A ≠ C) (hBC : B ≠ C) :
     generalPosition S → ¬ collinear ({A, B, C} : Set G.Point) := by
@@ -137,46 +141,43 @@ lemma generalPosition_spec [DecidableEq G.Point]
     exact card_finset_three hAB hAC hBC
 
 
-lemma quad_rule (A B C D : G.Point) :
-  quad A B C D ↔
-  ¬collinear {A, B, C} ∧ ¬collinear {A, B, D} ∧ ¬collinear {A, C, D} ∧ ¬collinear {B, C, D} := by sorry
-  -- constructor
-  -- · rintro ⟨h, H⟩
-  --   unfold generalPosition at H
-  --   refine ⟨?_, ?_, ?_, ?_⟩
-  --   let S : Set G.Point := ({A,B,C,D} : Set G.Point)
-  --   have hsub : ↑({A,B,C} : Finset G.Point) ⊆ S := by
-  --       intro x hx
-  --       have : x = A ∨ x = B ∨ x = C := by simpa using hx
-  --       -- simp [S]
-  --       rcases this with (rfl | rfl | rfl) <;> simp [S]
-  --   subst S
-  --   have hcard : ({A,B,C} : Finset G.Point).card = 3 := by aesop
-  --   exact_mod_cast h ({A, B, C}) hsub hcard
-  --   have hcard := card_finset_three (G := G) h.AB h.AC h.BC
-  --   exact H ({A,B,C}) hsub hcard
-  --   have h1 : ({A B C} : Finset G.Point) ⊆ {A, B, C, D} := by
-  --   simp only [Finset.subset_iff, Finset.mem_insert, Finset.mem_singleton]
-  --   intro x hx
-  --   cases' hx with hx hx
-  --   · left; exact hx
-  --   · cases' hx with hx hx
-  --     · right; left; exact hx
-  --     · right; right; left; exact hx
-  -- have h2 : ({A, B, C} : Finset G.Point).card = 3 := by simp [Finset.card_insert_of_not_mem]
-  -- exact (h {A, B, C} (by exact_mod_cast h1) h2).2
-  --   specialize h {A, B, C}
-  --   simp at h
-  --   exact ⟨h.2, by
-  --     specialize h {A, B, D}
-  --     simp at h
-  --     exact h.2, by
-  --     specialize h {A, C, D}
-  --     simp at h
-  --     exact h.2, by
-  --     specialize h {B, C, D}
-  --     simp at h
-  --     exact h.2⟩
+lemma quad_rule {A B C D : G.Point} :
+    quad A B C D ↔
+    (A ≠ B ∧ A ≠ C ∧ A ≠ D ∧ B ≠ C ∧ B ≠ D ∧ C ≠ D) ∧
+    ¬collinear {A, B, C} ∧ ¬collinear {A, B, D} ∧ ¬collinear {A, C, D} ∧ ¬collinear {B, C, D} := by
+  constructor
+  · rintro ⟨h, H⟩
+    have ⟨h₁, h₂, h₃, h₄, h₅, h₆⟩ := h
+    refine ⟨h, ⟨?_, ?_, ?_, ?_⟩⟩
+    all_goals
+      apply generalPosition_spec (S := {A, B, C, D})
+      · simp
+      · simp
+      · simp
+      · assumption
+      · assumption
+      · assumption
+      · assumption
+  · rintro ⟨h, ⟨h₁, h₂, h₃, h₄⟩⟩
+    constructor
+    · show A ≠ B ∧ A ≠ C ∧ A ≠ D ∧ B ≠ C ∧ B ≠ D ∧ C ≠ D
+      exact h
+    · show generalPosition {A, B, C, D}
+      simp [generalPosition]
+      intro T hTsub hTcard
+      have : T = {A, B, C} ∨ T = {A, B, D} ∨ T = {A, C, D} ∨ T = {B, C, D} := sorry
+      rcases this with rfl | rfl | rfl | rfl
+      · suffices h: ¬ collinear {A, B, C} by simpa using h
+        assumption
+      · suffices h: ¬ collinear {A, B, D} by simpa using h
+        assumption
+      · suffices h: ¬ collinear {A, C, D} by simpa using h
+        assumption
+      · suffices h: ¬ collinear {B, C, D} by simpa using h
+        assumption
+
+
+end DecidablePoint
 
 lemma line_ne_of_mem_not_mem (hAℓ : A ∈ᵢ ℓ) (hAnotm : ¬ A ∈ᵢ m) : ℓ ≠ m := by
   rintro rfl; contradiction
