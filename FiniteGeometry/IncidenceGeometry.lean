@@ -151,13 +151,9 @@ lemma quad_rule {A B C D : G.Point} :
     refine ⟨h, ⟨?_, ?_, ?_, ?_⟩⟩
     all_goals
       apply generalPosition_spec (S := {A, B, C, D})
-      · simp
-      · simp
-      · simp
-      · assumption
-      · assumption
-      · assumption
-      · assumption
+      <;> try simp
+    all_goals
+      assumption
   · rintro ⟨h, ⟨h₁, h₂, h₃, h₄⟩⟩
     constructor
     · show A ≠ B ∧ A ≠ C ∧ A ≠ D ∧ B ≠ C ∧ B ≠ D ∧ C ≠ D
