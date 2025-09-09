@@ -87,7 +87,8 @@ def triangle (T : Finset G.Point) : Prop :=
   T.card = 3 ∧ ¬ collinear (T : Set G.Point)
 
 def generalPosition (S : Set G.Point) : Prop :=
-  ∀ T : Finset G.Point, (T : Set G.Point) ⊆ S → T.card = 3 → ¬ collinear (T : Set G.Point)
+  ∀ A B C : G.Point, {A, B, C} ⊆ S ∧ (A ≠ B ∧ A ≠ C ∧ B ≠ C) → ¬ collinear {A, B, C}
+  -- ∀ T : Finset G.Point, (T : Set G.Point) ⊆ S → T.card = 3 → ¬ collinear (T : Set G.Point)
 
 def concurrent (L : Set G.Line) : Prop :=
   ∃ p : G.Point, L ⊆ (pencil p : Set G.Line)
@@ -124,21 +125,20 @@ variable {G : IncidenceGeometry} {ℓ m : G.Line} {A B C : G.Point}
 
 
 section DecidablePoint
-variable [DecidableEq G.Point]
 
 lemma generalPosition_spec
     (S : Set G.Point) (A B C : G.Point) (hA : A ∈ S) (hB : B ∈ S)
     (hC : C ∈ S) (hAB : A ≠ B) (hAC : A ≠ C) (hBC : B ≠ C) :
     generalPosition S → ¬ collinear ({A, B, C} : Set G.Point) := by
   intro hGP
-  set T : Finset G.Point := {A, B, C} with hT
-  suffices h: ¬collinear (T : Set G.Point) by simpa [hT] using h
-  apply hGP T
-  · show (T : Set G.Point) ⊆ S
-    subst T; simp
+  specialize hGP A B C
+  apply hGP
+  constructor
+  · show {A, B, C} ⊆ S
     apply Set.insert_subset hA; apply Set.insert_subset hB; apply Set.singleton_subset_iff.mpr hC
-  · show #T = 3
-    exact card_finset_three hAB hAC hBC
+  · show (A ≠ B ∧ A ≠ C ∧ B ≠ C)
+    exact ⟨hAB, hAC, hBC⟩
+
 
 
 lemma quad_rule {A B C D : G.Point} :
@@ -163,18 +163,13 @@ lemma quad_rule {A B C D : G.Point} :
     · show A ≠ B ∧ A ≠ C ∧ A ≠ D ∧ B ≠ C ∧ B ≠ D ∧ C ≠ D
       exact h
     · show generalPosition {A, B, C, D}
-      simp [generalPosition]
-      intro T hTsub hTcard
-      have : T = {A, B, C} ∨ T = {A, B, D} ∨ T = {A, C, D} ∨ T = {B, C, D} := sorry
-      rcases this with rfl | rfl | rfl | rfl
-      · suffices h: ¬ collinear {A, B, C} by simpa using h
-        assumption
-      · suffices h: ¬ collinear {A, B, D} by simpa using h
-        assumption
-      · suffices h: ¬ collinear {A, C, D} by simpa using h
-        assumption
-      · suffices h: ¬ collinear {B, C, D} by simpa using h
-        assumption
+      simp only [generalPosition]
+      intro A' B' C'
+      rintro ⟨hl, hr⟩
+      set T := ({A', B', C'} : Set G.Point) with hT
+      rcases (Set.subset_four_choose_three (h:=hT) hr hl) with (h|h|h|h)
+      all_goals
+      · rw [h] at *; assumption
 
 
 end DecidablePoint
