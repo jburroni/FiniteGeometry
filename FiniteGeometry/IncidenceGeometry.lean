@@ -122,7 +122,6 @@ section BasicLemmas
 open Finset
 variable {G : IncidenceGeometry} {ℓ m : G.Line} {A B : G.Point}
 
-
 lemma generalPosition_spec [DecidableEq G.Point]
     (S : Set G.Point) (A B C : G.Point) (hA : A ∈ S) (hB : B ∈ S)
     (hC : C ∈ S) (hAB : A ≠ B) (hAC : A ≠ C) (hBC : B ≠ C) :
@@ -132,18 +131,8 @@ lemma generalPosition_spec [DecidableEq G.Point]
   suffices h: ¬collinear (T : Set G.Point) by simpa [hT] using h
   apply hGP T
   · show (T : Set G.Point) ⊆ S
-    intro x hx
-    have hx₁ := Finset.mem_insert.mp hx
-    cases hx₁ with
-    | inl hxA => rw [hxA]; assumption
-    | inr hx' =>
-        have hx₂ := Finset.mem_insert.mp hx'
-        cases hx₂ with
-        | inl hxB =>
-            rw [hxB]; assumption
-        | inr hxC' =>
-            have hxC : x = C := Finset.mem_singleton.mp hxC'
-            rw [hxC]; assumption
+    subst T; simp
+    apply Set.insert_subset hA; apply Set.insert_subset hB; apply Set.singleton_subset_iff.mpr hC
   · show #T = 3
     exact card_finset_three hAB hAC hBC
 

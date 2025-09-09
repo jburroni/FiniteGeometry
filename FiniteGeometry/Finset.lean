@@ -13,9 +13,6 @@ theorem mem_compl_singleton {a b : α} : a ∈ ({b}ᶜ : Finset α) ↔ a ≠ b 
 lemma card_finset_three {α : Type*} [DecidableEq α] {A B C : α} (hAB : A ≠ B) (hAC : A ≠ C)
     (hBC : B ≠ C) : #{A, B, C} = 3 := by
   rw [Finset.card_insert_of_notMem, Finset.card_insert_of_notMem, Finset.card_singleton]
-  · show B ∉ {C}
-    simp [hBC]
-  · show  A ∉ {B, C}
-    simp [hAB, hAC]
+  repeat simp [hBC, hAB, hAC]
 
 end Finset
