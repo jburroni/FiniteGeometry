@@ -407,16 +407,14 @@ lemma exists_point_ne_O_on_line
 
 
 
-lemma two_points_on_line_away_from_O {O : G.Point}
-    {ℓ m : G.Line}
-    (hℓm : ℓ ≠ m) (hOℓ : O ∈ᵢ ℓ) (hOm : O ∈ᵢ m) :
+lemma two_points_on_line_away_from_O {O : G.Point} (hℓm : ℓ ≠ m) (hOℓ : O ∈ᵢ ℓ) (hOm : O ∈ᵢ m) :
     ∃ A B : G.Point, A ≠ B ∧ A ∈ᵢ ℓ ∧ B ∈ᵢ m ∧ A ≠ O ∧ B ≠ O := by
   obtain ⟨A, hAℓ, hA_ne_O⟩ := exists_point_ne_O_on_line (G := G) O ℓ
   obtain ⟨B, hBm, hB_ne_O⟩ := exists_point_ne_O_on_line (G := G) O m
   have hAB : A ≠ B :=
     ne_of_distinct_lines_through_O (G := G) (hP2 := ProjectivePlane.P2 (G := G))
       hℓm hOℓ hOm hAℓ hBm hA_ne_O
-  exact ⟨A, B, hAB, hAℓ, hBm, hA_ne_O, hB_ne_O⟩
+  use A, B
 
 end FromProjectivePlane
 
