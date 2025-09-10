@@ -31,7 +31,7 @@ lemma subset_four_choose_three  {A B C D A' B' C' : α} {T : Set α} (h : T = {A
   · left; ext x; simp; tauto
   · right; left; ext x; simp; tauto
   · right; left; ext x
-    simp [or_left_comm, or_comm, or_assoc]
+    simp [or_left_comm, or_comm]
 
 
 
