@@ -38,31 +38,18 @@ lemma subset_four_choose_three  {A B C D A' B' C' : α} {T : Set α} (h : T = {A
     first
     | right; right; right; ext x; simp; tauto
     | right; right; left; ext x; simp; tauto
+  · left; ext x; simp; tauto
+  · right; left; ext x; simp; tauto
+  · left; ext x; simp; tauto
+  · right; left; ext x; simp; tauto
+  · left; ext x; simp; tauto
+  · right; left; ext x; simp; tauto
+  · left; ext x; simp; tauto
+  · left; ext x; simp; tauto
+  · right; left; ext x; simp; tauto
+  · right; left; ext x
+    simp [or_left_comm, or_comm, or_assoc]
 
-    -- | right; left; ext x; simp; tauto
-    -- | left; ext x; simp; tauto
-    -- | exfalso; contradiction
-  -- | right; left; ext x; simp; tauto
-  -- · left; ext x; simp; tauto
-  -- · right; left; ext x; simp; tauto
-  -- · right; right; left; ext x; simp; tauto
-  -- · left; ext x; simp; tauto
-  -- · right; left; ext y; simp; tauto
-  -- · left; ext x; simp; tauto
-  -- · right; left; ext x; simp; tauto
-  -- · right; right; right; ext x; simp; tauto
-  -- · left; ext x; simp; tauto
-  -- · right; right; left; ext x; simp; tauto
-  -- · left; ext x; simp; tauto
-  -- · right; right; right; ext x; simp; tauto
-  -- · right; right; left; ext y; simp; tauto
-  -- · right; right; right; ext x; simp; tauto
-  -- · right; left; ext x; simp; tauto
-  -- · right; right; left; ext y; simp; tauto
-  -- · right; left; ext z; simp; tauto
-  -- · right; right; right; ext w; simp; tauto
-  -- · right; right; left; ext x; simp; tauto
-  -- · right; right; right; ext z; simp; tauto
 
 
 end Set
