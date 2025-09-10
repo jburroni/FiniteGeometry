@@ -88,15 +88,13 @@ def triangle (T : Finset G.Point) : Prop :=
   T.card = 3 ∧ ¬ collinear (T : Set G.Point)
 
 def generalPosition (S : Set G.Point) : Prop :=
-  ∀ A B C : G.Point, {A, B, C} ⊆ S ∧ (A ≠ B ∧ A ≠ C ∧ B ≠ C) → ¬ collinear {A, B, C}
-  -- ∀ T : Finset G.Point, (T : Set G.Point) ⊆ S → T.card = 3 → ¬ collinear (T : Set G.Point)
+  ∀ A B C, {A, B, C} ⊆ S ∧ (A ≠ B ∧ A ≠ C ∧ B ≠ C) → ¬ collinear {A, B, C}
 
 def concurrent (L : Set G.Line) : Prop :=
   ∃ p : G.Point, L ⊆ (pencil p : Set G.Line)
 
 def quad (A B C D : G.Point) : Prop :=
-  (A ≠ B ∧ A ≠ C ∧ A ≠ D ∧ B ≠ C ∧ B ≠ D ∧ C ≠ D) ∧
-  generalPosition {A, B, C, D}
+  (A ≠ B ∧ A ≠ C ∧ A ≠ D ∧ B ≠ C ∧ B ≠ D ∧ C ≠ D) ∧ generalPosition {A, B, C, D}
 
 structure Subgeometry (G : IncidenceGeometry) where
   PointSub : Set G.Point
