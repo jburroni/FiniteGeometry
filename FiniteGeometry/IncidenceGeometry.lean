@@ -132,11 +132,7 @@ lemma generalPosition_spec
   intro hGP
   specialize hGP A B C
   apply hGP
-  constructor
-  · show {A, B, C} ⊆ S
-    apply Set.insert_subset hA; apply Set.insert_subset hB; apply Set.singleton_subset_iff.mpr hC
-  · show (A ≠ B ∧ A ≠ C ∧ B ≠ C)
-    exact ⟨hAB, hAC, hBC⟩
+  simp [Set.subset_def]; tauto
 
 
 
