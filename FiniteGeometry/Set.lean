@@ -3,6 +3,8 @@ import Mathlib.Data.Set.Insert
 
 namespace Set
 variable {α : Type*}
+-- increase max heartbeats
+set_option maxHeartbeats 400000
 
 lemma subset_four_choose_three  {A B C D A' B' C' : α} {T : Set α} (h : T = {A', B', C'})
     (h₁ : A' ≠ B' ∧ A' ≠ C' ∧ B' ≠ C') : T ⊆ {A, B, C, D} → (T = {A, B, C}) ∨
@@ -30,8 +32,10 @@ lemma subset_four_choose_three  {A B C D A' B' C' : α} {T : Set α} (h : T = {A
   · left; ext x; simp; tauto
   · left; ext x; simp; tauto
   · right; left; ext x; simp; tauto
-  · right; left; ext x
-    simp [or_left_comm, or_comm]
+  · right; left; ext x; simp;
+    show_term {tauto}
+    -- tauto
+    -- simp [or_left_comm, or_comm]
 
 
 
