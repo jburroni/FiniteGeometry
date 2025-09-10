@@ -5,6 +5,7 @@ import Mathlib.Data.Finset.Card
 import Mathlib.Data.Finset.Basic
 import Mathlib.Data.Fintype.Basic
 import FiniteGeometry.Finset
+import FiniteGeometry.Set
 
 
 structure IncidenceGeometry where
