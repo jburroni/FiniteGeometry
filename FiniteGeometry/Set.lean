@@ -4,7 +4,7 @@ import Mathlib.Data.Set.Insert
 namespace Set
 variable {α : Type*}
 
--- increase heartbeats in the following lemma
+-- increased heartbeats in the following lemma
 set_option maxHeartbeats 500000 in
 lemma subset_four_choose_three  {A B C D A' B' C' : α} {T : Set α} (h : T = {A', B', C'})
     (h₁ : A' ≠ B' ∧ A' ≠ C' ∧ B' ≠ C') : T ⊆ {A, B, C, D} → (T = {A, B, C}) ∨
