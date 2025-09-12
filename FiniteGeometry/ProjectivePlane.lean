@@ -121,9 +121,8 @@ lemma not_mem_of_line_ne (hP1 : P1 (G := G)) (hAB : A ≠ B)
 lemma ne_of_distinct_lines_through_O (hP2 : P2 (G:=G)) {O : G.Point}
     (hℓm : ℓ ≠ m) (hOℓ : O ∈ᵢ ℓ) (hOm : O ∈ᵢ m)
     (hAℓ : A ∈ᵢ ℓ) (hBm : B ∈ᵢ m) (hA_ne_O : A ≠ O) : A ≠ B := by
-  intro hAB
-  have hAm : A ∈ᵢ m := by subst A; assumption
-  have : A = O := point_eq_of_incident hP2 hℓm hAℓ hAm hOℓ hOm
+  rintro rfl
+  have : A = O := by apply point_eq_of_incident <;> assumption
   contradiction
 
 
@@ -404,75 +403,35 @@ lemma exist_points_ne_O_on_line
       · use X, Z
     · use X, Y
 
--- lemma two_points_on_line_away_from_O {O : G.Point} (hℓm : ℓ ≠ m) (hOℓ : O ∈ᵢ ℓ) (hOm : O ∈ᵢ m) :
---     ∃ A B : G.Point, A ≠ B ∧ A ∈ᵢ ℓ ∧ B ∈ᵢ m ∧ A ≠ O ∧ B ≠ O := by
---   obtain ⟨A, hAℓ, hA_ne_O⟩ := exists_point_ne_O_on_line (G := G) O ℓ
---   obtain ⟨B, hBm, hB_ne_O⟩ := exists_point_ne_O_on_line (G := G) O m
---   have hAB : A ≠ B :=
---     ne_of_distinct_lines_through_O (G := G) (hP2 := ProjectivePlane.P2 (G := G))
---       hℓm hOℓ hOm hAℓ hBm hA_ne_O
---   use A, B
 
 lemma P3'_of_ProjectivePlane {G : IncidenceGeometry} [ProjectivePlane G] : P3' (G := G) := by
   obtain ⟨O⟩ := ProjectivePlane.P0 (G := G)
-  obtain ⟨ℓ, m, n, hℓm, hℓn, hmn, hOℓ, hOm, hOn⟩ := ProjectivePlane.P4 O
+  obtain ⟨ℓ, m, -, _, -, -, _, _, -⟩ := ProjectivePlane.P4 O
 
-  obtain ⟨A, B, hAℓ, hBℓ, hA_ne_O, hB_ne_O, hA_ne_B⟩ := exist_points_ne_O_on_line (G := G) O ℓ
-  obtain ⟨C, D, hCm, hDm, hC_ne_O, hD_ne_O, hC_ne_D⟩ := exist_points_ne_O_on_line (G := G) O m
+  obtain ⟨A, B, _, _, _, _, _⟩ := exist_points_ne_O_on_line (G := G) O ℓ
+  obtain ⟨C, D, _, _, _, _, _⟩ := exist_points_ne_O_on_line (G := G) O m
 
   have hP1 : P1 := ProjectivePlane.P1 (G := G)
   have hP2 : P2 := ProjectivePlane.P2 (G := G)
 
-  have hA_ne_C : A ≠ C := ne_of_distinct_lines_through_O hP2 hℓm hOℓ hOm hAℓ hCm hA_ne_O
-  have hA_ne_D : A ≠ D := ne_of_distinct_lines_through_O hP2 hℓm hOℓ hOm hAℓ hDm hA_ne_O
-  have hB_ne_C : B ≠ C := ne_of_distinct_lines_through_O hP2 hℓm hOℓ hOm hBℓ hCm hB_ne_O
-  have hB_ne_D : B ≠ D := ne_of_distinct_lines_through_O hP2 hℓm hOℓ hOm hBℓ hDm hB_ne_O
+  have : A ≠ C := by apply_rules [ne_of_distinct_lines_through_O (O:=O)]
+  have : A ≠ D := by apply_rules [ne_of_distinct_lines_through_O (O:=O)]
+  have : B ≠ C := by apply_rules [ne_of_distinct_lines_through_O (O:=O)]
+  have : B ≠ D := by apply_rules [ne_of_distinct_lines_through_O (O:=O)]
 
-  have hAnotm : ¬ A ∈ᵢ m := not_mem_of_line_ne hP1 hA_ne_O.symm hOℓ hAℓ hOm hℓm
-  have hBnotm : ¬ B ∈ᵢ m := not_mem_of_line_ne hP1 hB_ne_O.symm hOℓ hBℓ hOm hℓm
-  have hCnotℓ : ¬ C ∈ᵢ ℓ := not_mem_of_line_ne hP1 hC_ne_O.symm hOm hCm hOℓ hℓm.symm
-  have hDnotℓ : ¬ D ∈ᵢ ℓ := not_mem_of_line_ne hP1 hD_ne_O.symm hOm hDm hOℓ hℓm.symm
+  have : ¬ A ∈ᵢ m := by apply_rules [not_mem_of_line_ne]
+  have : ¬ B ∈ᵢ m := by apply_rules [not_mem_of_line_ne (A:=O)]
+  have : ¬ C ∈ᵢ ℓ := by apply_rules [not_mem_of_line_ne (ℓ:=m) (A:=O)]
+  have : ¬ D ∈ᵢ ℓ := by apply_rules [not_mem_of_line_ne (ℓ:=m) (A:=O)]
 
-  have : noncollinear A B C := noncollinear_of_line_through_AB_not_C hP1 hA_ne_B hAℓ hBℓ hCnotℓ
-  have : noncollinear A B D := noncollinear_of_line_through_AB_not_C hP1 hA_ne_B hAℓ hBℓ hDnotℓ
+  have : noncollinear A B C := by apply_rules [noncollinear_of_line_through_AB_not_C]
+  have : noncollinear A B D := by apply_rules [noncollinear_of_line_through_AB_not_C]
   have : noncollinear A C D := by
-    suffices noncollinear C D A by exact noncollinear₃₁₂.mpr this
-    exact noncollinear_of_line_through_AB_not_C hP1 hC_ne_D hCm hDm hAnotm
+    apply_rules [noncollinear₃₁₂.mp]; apply_rules [noncollinear_of_line_through_AB_not_C]
   have : noncollinear B C D := by
-    suffices noncollinear C D B by exact noncollinear₃₁₂.mpr this
-    exact noncollinear_of_line_through_AB_not_C hP1 hC_ne_D hCm hDm hBnotm
+    apply_rules [noncollinear₃₁₂.mp]; apply_rules [noncollinear_of_line_through_AB_not_C]
 
   use A, B, C, D
-
-  -- -- obtain ⟨A, B, hAB, hAℓ, hBm, hA_ne_O, hB_ne_O⟩ :=
-  -- --   two_points_on_line_away_from_O (G := G) hℓm hOℓ hOm
-  -- -- obtain ⟨C, D, hCD, hCℓ, hDn, hC_ne_O, hD_ne_O⟩ :=
-  -- --   two_points_on_line_away_from_O (G := G) hℓn hOℓ hOn
-  -- -- obtain ⟨E, F, hEF, hEℓ, hFn, hE_ne_O, hF_ne_O⟩ :=
-  -- --   two_points_on_line_away_from_O (G := G) hℓn hOℓ hOn
-
-  -- have hP2 : P2 := ProjectivePlane.P2 (G := G)
-
-  -- -- have hAC : A ≠ C := ne_of_distinct_lines_through_O hP2 hℓm hOℓ hOm hAℓ hCℓ hA_ne_O
-  -- have : A ≠ B := ne_of_distinct_lines_through_O hP2 hℓm hOℓ hOm hAℓ hBm hA_ne_O
-  -- have hAD : A ≠ D := ne_of_distinct_lines_through_O hP2 hℓn hOℓ hOn hAℓ hDn hA_ne_O
-  -- have hBC : B ≠ C := (ne_of_distinct_lines_through_O hP2 hℓm hOℓ hOm hCℓ hBm  hC_ne_O).symm
-  -- have hBD : B ≠ D := ne_of_distinct_lines_through_O hP2 hmn hOm hOn hBm  hDn hB_ne_O
-
-  -- -- Show the four triples are noncollinear
-  -- have hABC : noncollinear A B C := by
-  --   sorry -- A ∈ ℓ, B ∈ m, C ∈ ℓ, but ℓ ≠ m so they can't all be on one line
-
-  -- have hABD : noncollinear A B D := by
-  --   sorry -- A ∈ ℓ, B ∈ m, D ∈ n, all distinct lines
-
-  -- have hACD : noncollinear A C D := by
-  --   sorry -- A ∈ ℓ, C ∈ ℓ (but A ≠ C), D ∈ n, ℓ ≠ n
-
-  -- have hBCD : noncollinear B C D := by
-  --   sorry -- B ∈ m, C ∈ ℓ, D ∈ n, all distinct lines
-
-  -- use A, B, C, D
 
 end FromProjectivePlane
 
